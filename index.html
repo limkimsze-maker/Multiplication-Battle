@@ -18,6 +18,18 @@
     user-select:none;
   }
 
+  html, body, #app, #game, #gameArea, button, a {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: none;
+  }
+
+  button, a, .ctrl, .shoot, .dpad {
+    -webkit-user-drag: none;
+    user-drag: none;
+  }
+
   html,body{
     margin:0;
     width:100%;
@@ -62,7 +74,7 @@
   }
 
   .cover-card{
-    width:min(840px,96vw);
+    width:min(860px,96vw);
     background:linear-gradient(180deg,#ffffff,#fff7d6);
     border:5px solid #1e3a8a;
     border-radius:30px;
@@ -298,6 +310,46 @@
     border:2px solid #0f172a;
   }
 
+  #player.level1 .body{
+    background:#2563eb;
+  }
+
+  #player.level2 .body{
+    background:#16a34a;
+  }
+
+  #player.level2 .body::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    top:52px;
+    transform:translateX(-50%);
+    width:46px;
+    height:12px;
+    background:#bbf7d0;
+    border:3px solid #14532d;
+    border-radius:999px;
+  }
+
+  #player.level3 .body{
+    background:#7c3aed;
+    box-shadow:0 0 16px #a78bfa;
+  }
+
+  #player.level3 .body::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    top:50px;
+    transform:translateX(-50%);
+    width:54px;
+    height:14px;
+    background:#67e8f9;
+    border:3px solid #0e7490;
+    border-radius:999px;
+    box-shadow:0 0 12px #22d3ee;
+  }
+
   .enemy{
     position:absolute;
     width:78px;
@@ -354,6 +406,31 @@
     border:2px solid #ca8a04;
     border-radius:999px;
     z-index:6;
+  }
+
+  .sprayBullet{
+    width:9px;
+    height:22px;
+    background:#bbf7d0;
+    border:2px solid #15803d;
+    box-shadow:0 0 10px #22c55e;
+  }
+
+  .laserBeam{
+    position:absolute;
+    width:24px;
+    background:linear-gradient(90deg, transparent, #67e8f9, #ffffff, #67e8f9, transparent);
+    border-left:3px solid #0891b2;
+    border-right:3px solid #0891b2;
+    box-shadow:0 0 18px #22d3ee;
+    z-index:6;
+    border-radius:999px;
+    animation:laserFlash .14s linear forwards;
+  }
+
+  @keyframes laserFlash{
+    from{opacity:1; transform:scaleX(1);}
+    to{opacity:0; transform:scaleX(1.6);}
   }
 
   .enemyBullet{
@@ -444,7 +521,7 @@
     top:50%;
     transform:translate(-50%,-50%);
     z-index:100;
-    width:min(720px,92vw);
+    width:min(760px,92vw);
     background:#ffffffee;
     border:5px solid #1e3a8a;
     border-radius:28px;
@@ -463,6 +540,47 @@
   #message p{
     font-weight:bold;
     font-size:1.15rem;
+  }
+
+  .promotion-card{
+    background:linear-gradient(180deg,#fff7cc,#facc15);
+    border:6px solid #92400e;
+    border-radius:28px;
+    padding:18px;
+    margin:10px 0;
+    box-shadow:0 8px 0 #78350f;
+  }
+
+  .promotion-small{
+    font-size:clamp(1rem,3vw,1.5rem);
+    font-weight:bold;
+    color:#7c2d12;
+  }
+
+  .promotion-rank{
+    font-size:clamp(3rem,12vw,6rem);
+    line-height:1;
+    font-weight:900;
+    color:#1d4ed8;
+    text-shadow:4px 4px 0 #ffffff, 7px 7px 0 #f97316;
+    margin:10px 0;
+  }
+
+  .promotion-stars{
+    font-size:clamp(2rem,7vw,4rem);
+    letter-spacing:8px;
+    margin:8px 0;
+  }
+
+  .weapon-note{
+    display:inline-block;
+    padding:8px 14px;
+    margin:8px 0;
+    border-radius:999px;
+    background:#eff6ff;
+    border:3px solid #1d4ed8;
+    font-weight:bold;
+    font-size:1.1rem;
   }
 
   .rank-badge{
@@ -595,6 +713,10 @@
       transform-origin:bottom center;
       bottom:calc(80px + env(safe-area-inset-bottom));
     }
+
+    .promotion-rank{
+      font-size:clamp(2.4rem,10vw,4.6rem);
+    }
   }
 </style>
 </head>
@@ -609,13 +731,13 @@
       <div class="plane-big"></div>
 
       <div class="level-list">
-        <div class="level-card">Level 1<br>×2, ×3, ×4, ×5<br>Promotion: Captain</div>
-        <div class="level-card">Level 2<br>×6, ×7, ×8, ×9, ×10<br>Promotion: Major</div>
-        <div class="level-card">Level 3<br>×2 to ×12<br>Promotion: General</div>
+        <div class="level-card">Level 1<br>×2, ×3, ×4, ×5<br>Promotion: Captain<br>Weapon: Single Shot</div>
+        <div class="level-card">Level 2<br>×6, ×7, ×8, ×9, ×10<br>Promotion: Major<br>Weapon: Spray Gun</div>
+        <div class="level-card">Level 3<br>×2 to ×12<br>Promotion: General<br>Weapon: Laser Gun</div>
       </div>
 
       <p><b>Mission:</b> Shoot the enemy plane carrying the correct multiplication answer.</p>
-      <p>Enemy planes may shoot back slowly. Dodge them and complete all 3 levels!</p>
+      <p>Enemy planes may shoot once when they appear. Dodge the slow red shots!</p>
       <p><b>Mobile tip:</b> Drag the plane with your finger or use the buttons.</p>
 
       <div class="btn-row">
@@ -677,32 +799,50 @@
 </div>
 
 <script>
+document.addEventListener("contextmenu", function(e){
+  e.preventDefault();
+}, { passive:false });
+
+document.addEventListener("selectstart", function(e){
+  e.preventDefault();
+}, { passive:false });
+
+document.addEventListener("dragstart", function(e){
+  e.preventDefault();
+}, { passive:false });
+
 const LEVELS = [
   {
     name: "Level 1",
     tables: [2,3,4,5],
     questions: 12,
+    currentRank: "Cadet",
     promotion: "Captain",
+    weapon: "Single Shot",
+    nextWeapon: "Spray Gun unlocked!",
     enemySpeed: 1.05,
-    enemyBulletChance: 0.007,
     maxEnemyBullets: 1
   },
   {
     name: "Level 2",
     tables: [6,7,8,9,10],
     questions: 12,
+    currentRank: "Captain",
     promotion: "Major",
+    weapon: "Spray Gun",
+    nextWeapon: "Laser Gun unlocked!",
     enemySpeed: 1.15,
-    enemyBulletChance: 0.009,
     maxEnemyBullets: 2
   },
   {
     name: "Level 3",
     tables: [2,3,4,5,6,7,8,9,10,11,12],
     questions: 15,
+    currentRank: "Major",
     promotion: "General",
+    weapon: "Laser Gun",
+    nextWeapon: "Final rank achieved!",
     enemySpeed: 1.2,
-    enemyBulletChance: 0.01,
     maxEnemyBullets: 2
   }
 ];
@@ -746,8 +886,8 @@ function showHow(){
     <p><b>Desktop:</b> Use ← → ↑ ↓ or WASD to move. Press Space to shoot.</p>
     <p><b>Mobile:</b> Drag the plane with your finger or use the direction buttons. Press 🔥 to shoot.</p>
     <p>Shoot only the plane with the correct multiplication answer.</p>
-    <p>Enemy shots are slow and bright red. Dodge them!</p>
-    <p>Complete Level 1 to become Captain, Level 2 to become Major, and Level 3 to become General.</p>
+    <p>Enemy planes shoot only once when they appear. Their red shots are slow and easy to dodge.</p>
+    <p>Complete Level 1 to become <b>Captain</b>, Level 2 to become <b>Major</b>, and Level 3 to become <b>General</b>.</p>
     <div class="btn-row">
       <button onclick="location.reload()">Back</button>
       <button class="success" onclick="startGame()">Start Mission</button>
@@ -803,6 +943,10 @@ function startLevel(index){
 
   $("message").style.display = "none";
   clearEnemiesAndBullets();
+
+  player.classList.remove("level1", "level2", "level3");
+  player.classList.add("level" + (levelIndex + 1));
+
   nextFact();
   updateHud();
 }
@@ -841,38 +985,43 @@ function bindControls(){
 
   const shootBtn = $("shootBtn");
 
-  shootBtn.onpointerdown = e => {
+  shootBtn.addEventListener("pointerdown", e => {
     e.preventDefault();
     e.stopPropagation();
+
+    try { shootBtn.setPointerCapture(e.pointerId); } catch(err) {}
+
     shoot();
-  };
+  }, { passive:false });
 }
 
 function holdButton(id, down, up){
   const btn = $(id);
 
-  btn.onpointerdown = e => {
+  btn.addEventListener("pointerdown", e => {
     e.preventDefault();
     e.stopPropagation();
+
     try { btn.setPointerCapture(e.pointerId); } catch(err) {}
+
     down();
-  };
+  }, { passive:false });
 
-  btn.onpointerup = e => {
+  btn.addEventListener("pointerup", e => {
     e.preventDefault();
     e.stopPropagation();
     up();
-  };
+  }, { passive:false });
 
-  btn.onpointercancel = e => {
+  btn.addEventListener("pointercancel", e => {
     e.preventDefault();
     e.stopPropagation();
     up();
-  };
+  }, { passive:false });
 
-  btn.onlostpointercapture = () => {
+  btn.addEventListener("lostpointercapture", () => {
     up();
-  };
+  });
 }
 
 function bindDragMovement(){
@@ -931,26 +1080,26 @@ function nextFact(){
 function spawnAnswerWave(){
   const answers = generateAnswers(correctAnswer);
 
-  const enemyWidth = window.innerWidth < 620 ? 72 : 86;
-  const sidePadding = window.innerWidth < 430 ? 12 : 22;
-  const availableWidth = window.innerWidth - sidePadding * 2 - enemyWidth;
+  const enemyWidth = window.innerWidth < 620 ? 76 : 88;
+  const sidePadding = window.innerWidth < 430 ? 14 : 26;
+  const usableWidth = window.innerWidth - sidePadding * 2 - enemyWidth;
 
   let xPositions = [
     sidePadding,
-    sidePadding + availableWidth * 0.33,
-    sidePadding + availableWidth * 0.66,
-    sidePadding + availableWidth
+    sidePadding + usableWidth * 0.33,
+    sidePadding + usableWidth * 0.66,
+    sidePadding + usableWidth
   ];
 
   xPositions = xPositions.sort(() => Math.random() - 0.5);
 
-  answers.forEach((ans,i)=>{
+  answers.forEach((ans, i) => {
     const x = Math.max(
       sidePadding,
       Math.min(window.innerWidth - enemyWidth - sidePadding, xPositions[i])
     );
 
-    const y = -95 - (i * 95) - Math.random() * 25;
+    const y = -110 - (i * 120) - Math.random() * 25;
 
     createEnemy(x, y, ans, ans === correctAnswer);
   });
@@ -992,29 +1141,73 @@ function createEnemy(x,y,answer,isCorrect){
     y,
     answer,
     correct:isCorrect,
-    speed:enemySpeed + Math.random()*0.28
+    speed:enemySpeed + Math.random()*0.22,
+    hasShot:false
   });
 }
 
 function shoot(){
   if(!running || shootCooldown) return;
 
-  shootCooldown = true;
-  setTimeout(()=>shootCooldown=false,150);
+  const weaponLevel = levelIndex + 1;
 
+  if(weaponLevel === 1){
+    shootCooldown = true;
+    setTimeout(()=>shootCooldown=false,150);
+    fireSingleBullet();
+  }
+
+  if(weaponLevel === 2){
+    shootCooldown = true;
+    setTimeout(()=>shootCooldown=false,190);
+    fireSprayGun();
+  }
+
+  if(weaponLevel === 3){
+    shootCooldown = true;
+    setTimeout(()=>shootCooldown=false,230);
+    fireLaserGun();
+  }
+
+  playShoot();
+}
+
+function fireSingleBullet(){
+  createPlayerBullet(playerX + 27, playerY - 18, 0, "bullet");
+}
+
+function fireSprayGun(){
+  createPlayerBullet(playerX + 27, playerY - 18, 0, "bullet sprayBullet");
+  createPlayerBullet(playerX + 15, playerY - 12, -1.6, "bullet sprayBullet");
+  createPlayerBullet(playerX + 39, playerY - 12, 1.6, "bullet sprayBullet");
+}
+
+function createPlayerBullet(x, y, vx, className){
   const bullet = document.createElement("div");
-  bullet.className = "bullet";
-
-  const x = playerX + 27;
-  const y = playerY - 18;
-
+  bullet.className = className;
   bullet.style.left = x + "px";
   bullet.style.top = y + "px";
 
   gameArea.appendChild(bullet);
-  bullets.push({el:bullet,x,y});
+  bullets.push({el:bullet, x, y, vx});
+}
 
-  playShoot();
+function fireLaserGun(){
+  const laser = document.createElement("div");
+  laser.className = "laserBeam";
+
+  const laserX = playerX + 20;
+  const laserTop = 0;
+  const laserHeight = playerY;
+
+  laser.style.left = laserX + "px";
+  laser.style.top = laserTop + "px";
+  laser.style.height = laserHeight + "px";
+
+  gameArea.appendChild(laser);
+  setTimeout(()=>laser.remove(),150);
+
+  checkLaserHit(laserX, laserX + 24);
 }
 
 function loop(){
@@ -1062,11 +1255,14 @@ function updatePlayer(){
 function moveBullets(){
   bullets.forEach(b=>{
     b.y -= bulletSpeed;
+    b.x += b.vx || 0;
+
     b.el.style.top = b.y + "px";
+    b.el.style.left = b.x + "px";
   });
 
   bullets = bullets.filter(b=>{
-    if(b.y < -40){
+    if(b.y < -40 || b.x < -40 || b.x > window.innerWidth + 40){
       b.el.remove();
       return false;
     }
@@ -1080,13 +1276,21 @@ function enemyShootBack(){
   const level = LEVELS[levelIndex];
 
   if(enemyBullets.length >= level.maxEnemyBullets) return;
-  if(Math.random() > level.enemyBulletChance) return;
   if(enemies.length === 0) return;
 
-  const visibleEnemies = enemies.filter(e => e.y > 20 && e.y < window.innerHeight * 0.55);
-  if(visibleEnemies.length === 0) return;
+  const readyShooters = enemies.filter(e =>
+    !e.hasShot &&
+    e.y > 40 &&
+    e.y < window.innerHeight * 0.42
+  );
 
-  const shooter = visibleEnemies[Math.floor(Math.random() * visibleEnemies.length)];
+  if(readyShooters.length === 0) return;
+
+  // Easy mode: only some ready enemies shoot.
+  if(Math.random() > 0.055) return;
+
+  const shooter = readyShooters[Math.floor(Math.random() * readyShooters.length)];
+  shooter.hasShot = true;
 
   const bullet = document.createElement("div");
   bullet.className = "enemyBullet";
@@ -1103,7 +1307,7 @@ function enemyShootBack(){
     el: bullet,
     x,
     y,
-    speed: 2.0 + Math.random() * 0.35
+    speed: 2.0 + Math.random() * 0.25
   });
 }
 
@@ -1144,6 +1348,47 @@ function moveEnemies(){
 
   if(enemies.length === 0 && running){
     spawnAnswerWave();
+  }
+}
+
+function checkLaserHit(laserLeft, laserRight){
+  if(!running) return;
+
+  const hitList = enemies
+    .map((e, index) => {
+      const r = e.el.getBoundingClientRect();
+      return { e, index, r };
+    })
+    .filter(item => {
+      return item.r.right >= laserLeft &&
+             item.r.left <= laserRight &&
+             item.r.bottom >= 0 &&
+             item.r.top <= playerY;
+    })
+    .sort((a,b) => b.r.top - a.r.top);
+
+  if(hitList.length === 0) return;
+
+  const hit = hitList[0];
+  const e = hit.e;
+
+  makeSpark(e.x + 36, e.y + 26);
+  e.el.remove();
+  enemies.splice(hit.index, 1);
+
+  if(e.correct){
+    score++;
+    totalScore++;
+    streak++;
+    current++;
+    playCorrect();
+    enemySpeed = Math.min(enemySpeed + 0.04, 2.25);
+    updateHud();
+    setTimeout(nextFact,430);
+  }else{
+    streak = 0;
+    playWrong();
+    loseLife("Oops! The laser hit a wrong answer.");
   }
 }
 
@@ -1234,16 +1479,21 @@ function levelCleared(){
   const level = LEVELS[levelIndex];
   const rank = level.promotion;
 
-  playWin();
-  burstConfetti(60);
+  playPromotionSound();
+  burstConfetti(90);
 
   if(levelIndex < LEVELS.length - 1){
     $("message").innerHTML = `
-      <h2>Level Cleared! 🎉</h2>
-      <div class="rank-badge">Promoted to ${rank}</div>
+      <h2>Promotion Earned! 🎉</h2>
+      <div class="promotion-card">
+        <div class="promotion-small">You are promoted to</div>
+        <div class="promotion-rank">${rank}</div>
+        <div class="promotion-stars">⭐ ⭐ ⭐</div>
+        <div class="weapon-note">${level.nextWeapon}</div>
+      </div>
       <p>You completed ${level.name}.</p>
       <p>Level Score: <b>${score}/${facts.length}</b></p>
-      <p>Next mission will unlock more multiplication facts.</p>
+      <p>Your plane has been upgraded for the next mission.</p>
       <div class="btn-row">
         <button class="success" onclick="continueToNextLevel()">Continue to Level ${levelIndex + 2}</button>
         <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
@@ -1251,9 +1501,13 @@ function levelCleared(){
     `;
   } else {
     $("message").innerHTML = `
-      <h2>Final Mission Complete! 🎉</h2>
-      <div class="rank-badge">Promoted to General</div>
-      <p>You completed all 3 levels.</p>
+      <h2>Final Promotion! 🎉</h2>
+      <div class="promotion-card">
+        <div class="promotion-small">You are now</div>
+        <div class="promotion-rank">GENERAL</div>
+        <div class="promotion-stars">🏅 ⭐ 🏅</div>
+        <div class="weapon-note">All missions completed!</div>
+      </div>
       <p>Total Score: <b>${totalScore}/${LEVELS.reduce((sum,l)=>sum+l.questions,0)}</b></p>
       <p>Outstanding flying, General! Expect a silly victory dance from the plane!</p>
       <div class="btn-row">
@@ -1282,6 +1536,7 @@ function endGame(){
   $("message").innerHTML = `
     <h2>Mission Paused! ✈️</h2>
     <p>You reached Level ${levelIndex + 1}.</p>
+    <p>Current Rank: <b>${LEVELS[levelIndex].currentRank}</b></p>
     <p>Level Score: <b>${score}/${facts.length}</b></p>
     <p>Total Score: <b>${totalScore}</b></p>
     <p>Practise again to earn your next promotion!</p>
@@ -1298,19 +1553,12 @@ function updateHud(){
   const level = LEVELS[levelIndex];
 
   $("levelNow").textContent = levelIndex + 1;
-  $("rankNow").textContent = getCurrentRank();
+  $("rankNow").textContent = level.currentRank;
   $("score").textContent = score;
   $("levelTotal").textContent = level.questions;
   $("factTotal").textContent = level.questions;
   $("lives").textContent = "❤️".repeat(lives) + "♡".repeat(3-lives);
   $("streak").textContent = streak;
-}
-
-function getCurrentRank(){
-  if(levelIndex === 0) return "Cadet";
-  if(levelIndex === 1) return "Captain";
-  if(levelIndex === 2) return "Major";
-  return "General";
 }
 
 function clearEnemiesAndBullets(){
@@ -1425,8 +1673,8 @@ function playWrong(){
   setTimeout(()=>beep(130,.13,"sawtooth",.045),110);
 }
 
-function playWin(){
-  [523,659,784,1046].forEach((n,i)=>setTimeout(()=>beep(n,.12),i*120));
+function playPromotionSound(){
+  [523,659,784,1046,1318].forEach((n,i)=>setTimeout(()=>beep(n,.12),i*110));
 }
 
 function shuffle(arr){
