@@ -10,12 +10,6 @@
     --sky1:#8fd8ff;
     --sky2:#dff6ff;
     --ink:#172033;
-    --blue:#2563eb;
-    --green:#22c55e;
-    --red:#ef4444;
-    --yellow:#facc15;
-    --orange:#fb923c;
-    --purple:#8b5cf6;
   }
 
   *{
@@ -143,6 +137,7 @@
     text-decoration:none;
     background:linear-gradient(#fff176,#facc15);
     box-shadow:0 6px 0 #a16207;
+    touch-action:none;
   }
 
   button:active,a.button:active{
@@ -150,19 +145,9 @@
     box-shadow:0 2px 0 #a16207;
   }
 
-  button:disabled{
-    opacity:.5;
-    cursor:not-allowed;
-  }
-
   .secondary{
     background:linear-gradient(#dbeafe,#60a5fa);
     box-shadow:0 6px 0 #1d4ed8;
-  }
-
-  .danger{
-    background:linear-gradient(#fecaca,#f87171);
-    box-shadow:0 6px 0 #991b1b;
   }
 
   .success{
@@ -176,12 +161,19 @@
     overflow:hidden;
   }
 
+  #gameArea{
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+    z-index:1;
+  }
+
   #hud{
     position:absolute;
     top:8px;
     left:8px;
     right:8px;
-    z-index:5;
+    z-index:8;
     display:grid;
     grid-template-columns:1fr auto 1fr;
     gap:8px;
@@ -206,19 +198,8 @@
     box-shadow:0 4px 0 #92400e;
   }
 
-  #scoreBox{
-    text-align:left;
-  }
-
-  #livesBox{
-    text-align:right;
-  }
-
-  #gameArea{
-    position:absolute;
-    inset:0;
-    overflow:hidden;
-  }
+  #scoreBox{text-align:left;}
+  #livesBox{text-align:right;}
 
   .cloud{
     position:absolute;
@@ -262,7 +243,8 @@
     left:50%;
     top:70%;
     transform:translateX(-50%);
-    z-index:3;
+    z-index:5;
+    pointer-events:none;
   }
 
   #player .body{
@@ -305,7 +287,7 @@
     position:absolute;
     width:78px;
     height:62px;
-    z-index:2;
+    z-index:3;
   }
 
   .enemy .eBody{
@@ -356,7 +338,7 @@
     background:#fef08a;
     border:2px solid #ca8a04;
     border-radius:999px;
-    z-index:4;
+    z-index:6;
   }
 
   .spark{
@@ -365,7 +347,7 @@
     height:22px;
     background:radial-gradient(circle,#fff 0 20%,#facc15 25% 45%,#fb923c 50% 70%,transparent 72%);
     border-radius:50%;
-    z-index:6;
+    z-index:7;
     animation:pop .35s linear forwards;
   }
 
@@ -378,8 +360,8 @@
     position:absolute;
     left:0;
     right:0;
-    bottom:8px;
-    z-index:6;
+    bottom:10px;
+    z-index:30;
     display:flex;
     justify-content:space-between;
     align-items:end;
@@ -387,35 +369,29 @@
     pointer-events:none;
   }
 
-  .control-group{
-    display:flex;
-    gap:10px;
+  .dpad{
+    display:grid;
+    grid-template-columns:68px 68px 68px;
+    grid-template-rows:62px 62px;
+    gap:8px;
     pointer-events:auto;
   }
 
-  .dpad{
-    display:grid;
-    grid-template-columns:56px 56px 56px;
-    grid-template-rows:52px 52px;
-    gap:6px;
+  .control-group{
+    display:flex;
     pointer-events:auto;
   }
 
   .ctrl{
-    width:64px;
-    height:58px;
+    width:68px;
+    height:62px;
     border-radius:20px;
-    font-size:1.8rem;
+    font-size:1.6rem;
     padding:0;
     background:linear-gradient(#e0f2fe,#60a5fa);
     box-shadow:0 5px 0 #1d4ed8;
-  }
-
-  .ctrl.small{
-    width:56px;
-    height:52px;
-    border-radius:16px;
-    font-size:1.35rem;
+    position:relative;
+    z-index:40;
   }
 
   .ctrl.blank{
@@ -428,9 +404,10 @@
   }
 
   .shoot{
-    width:88px;
-    height:70px;
-    border-radius:22px;
+    width:96px;
+    height:82px;
+    border-radius:24px;
+    font-size:2rem;
     background:linear-gradient(#fecaca,#fb7185);
     box-shadow:0 5px 0 #be123c;
   }
@@ -440,7 +417,7 @@
     left:50%;
     top:50%;
     transform:translate(-50%,-50%);
-    z-index:20;
+    z-index:50;
     width:min(680px,92vw);
     background:#ffffffee;
     border:5px solid #1e3a8a;
@@ -510,26 +487,26 @@
     }
 
     #controls{
-      bottom:10px;
+      bottom:14px;
       padding:0 8px;
     }
 
     .dpad{
-      grid-template-columns:52px 52px 52px;
-      grid-template-rows:48px 48px;
-      gap:5px;
+      grid-template-columns:62px 62px 62px;
+      grid-template-rows:58px 58px;
+      gap:7px;
     }
 
-    .ctrl.small{
-      width:52px;
-      height:48px;
-      font-size:1.2rem;
+    .ctrl{
+      width:62px;
+      height:58px;
+      font-size:1.35rem;
     }
 
     .shoot{
-      width:76px;
-      height:64px;
-      font-size:1.55rem;
+      width:90px;
+      height:76px;
+      font-size:1.85rem;
     }
 
     .credit{
@@ -561,7 +538,7 @@
     }
 
     #controls{
-      transform:scale(.88);
+      transform:scale(.9);
       transform-origin:bottom center;
       bottom:2px;
     }
@@ -579,6 +556,7 @@
       <div class="plane-big"></div>
       <p><b>Mission:</b> Shoot the enemy plane carrying the correct multiplication answer.</p>
       <p>Clear 12 multiplication facts. Wrong answers cost a life!</p>
+      <p><b>Mobile tip:</b> You can drag the plane with your finger or use the buttons.</p>
       <div class="btn-row">
         <button onclick="startGame()">Start Mission</button>
         <button class="secondary" onclick="showHow()">How to Play</button>
@@ -606,13 +584,13 @@
 
       <div id="controls">
         <div class="dpad">
-          <button class="ctrl small blank" disabled></button>
-          <button class="ctrl small" id="upBtn">▲</button>
-          <button class="ctrl small blank" disabled></button>
+          <button class="ctrl blank" disabled></button>
+          <button class="ctrl" id="upBtn">▲</button>
+          <button class="ctrl blank" disabled></button>
 
-          <button class="ctrl small" id="leftBtn">◀</button>
-          <button class="ctrl small centre" id="downBtn">▼</button>
-          <button class="ctrl small" id="rightBtn">▶</button>
+          <button class="ctrl" id="leftBtn">◀</button>
+          <button class="ctrl centre" id="downBtn">▼</button>
+          <button class="ctrl" id="rightBtn">▶</button>
         </div>
 
         <div class="control-group">
@@ -654,6 +632,7 @@ let bulletSpeed = 8;
 let animationId = null;
 let shootCooldown = false;
 let audioCtx = null;
+let draggingPlane = false;
 
 function $(id){ return document.getElementById(id); }
 
@@ -666,7 +645,7 @@ function showHow(){
   $("cover").querySelector(".cover-card").innerHTML = `
     <h1>How to Play</h1>
     <p><b>Desktop:</b> Use ← → ↑ ↓ or WASD to move. Press Space to shoot.</p>
-    <p><b>Mobile:</b> Use the direction buttons and 🔥 shoot button.</p>
+    <p><b>Mobile:</b> Drag the plane with your finger or use the direction buttons. Press 🔥 to shoot.</p>
     <p>Shoot only the plane with the correct multiplication answer.</p>
     <p>Wrong answer = lose 1 life. Clear 12 facts to win.</p>
     <div class="btn-row">
@@ -678,6 +657,7 @@ function showHow(){
 
 function startGame(){
   showScreen("playScreen");
+
   gameArea = $("gameArea");
   player = $("player");
 
@@ -691,18 +671,20 @@ function startGame(){
   running = true;
   enemySpeed = 1.15;
   shootCooldown = false;
+  draggingPlane = false;
 
   gameArea.innerHTML = "";
   $("message").style.display = "none";
 
   playerX = window.innerWidth / 2 - 32;
-  playerY = window.innerHeight - 170;
+  playerY = window.innerHeight - 190;
   updatePlayer();
 
   shuffle(facts);
   makeClouds();
   nextFact();
   bindControls();
+  bindDragMovement();
 
   if(animationId) cancelAnimationFrame(animationId);
   animationId = requestAnimationFrame(loop);
@@ -728,20 +710,74 @@ function bindControls(){
   holdButton("downBtn",  () => keys["ArrowDown"] = true,  () => keys["ArrowDown"] = false);
 
   const shootBtn = $("shootBtn");
-  shootBtn.ontouchstart = e => { e.preventDefault(); shoot(); };
-  shootBtn.onmousedown = e => { e.preventDefault(); shoot(); };
+
+  shootBtn.onpointerdown = e => {
+    e.preventDefault();
+    e.stopPropagation();
+    shoot();
+  };
 }
 
 function holdButton(id, down, up){
   const btn = $(id);
 
-  btn.ontouchstart = e => { e.preventDefault(); down(); };
-  btn.ontouchend = e => { e.preventDefault(); up(); };
-  btn.ontouchcancel = e => { e.preventDefault(); up(); };
+  btn.onpointerdown = e => {
+    e.preventDefault();
+    e.stopPropagation();
+    btn.setPointerCapture(e.pointerId);
+    down();
+  };
 
-  btn.onmousedown = e => { e.preventDefault(); down(); };
-  btn.onmouseup = e => { e.preventDefault(); up(); };
-  btn.onmouseleave = e => { e.preventDefault(); up(); };
+  btn.onpointerup = e => {
+    e.preventDefault();
+    e.stopPropagation();
+    up();
+  };
+
+  btn.onpointercancel = e => {
+    e.preventDefault();
+    e.stopPropagation();
+    up();
+  };
+
+  btn.onlostpointercapture = () => {
+    up();
+  };
+}
+
+function bindDragMovement(){
+  const game = $("game");
+
+  game.onpointerdown = e => {
+    if(!running) return;
+    if(e.target.closest("button") || e.target.closest("a")) return;
+
+    draggingPlane = true;
+    movePlaneToPointer(e);
+  };
+
+  game.onpointermove = e => {
+    if(!running || !draggingPlane) return;
+    movePlaneToPointer(e);
+  };
+
+  game.onpointerup = () => {
+    draggingPlane = false;
+  };
+
+  game.onpointercancel = () => {
+    draggingPlane = false;
+  };
+}
+
+function movePlaneToPointer(e){
+  const x = e.clientX - 32;
+  const y = e.clientY - 38;
+
+  playerX = x;
+  playerY = y;
+  clampPlayer();
+  updatePlayer();
 }
 
 function nextFact(){
@@ -752,6 +788,7 @@ function nextFact(){
 
   const [a,b] = facts[current % facts.length];
   correctAnswer = a * b;
+
   $("questionBox").textContent = `${a} × ${b} = ?`;
   $("factNo").textContent = current + 1;
 
@@ -813,7 +850,7 @@ function shoot(){
   if(!running || shootCooldown) return;
 
   shootCooldown = true;
-  setTimeout(()=>shootCooldown=false,180);
+  setTimeout(()=>shootCooldown=false,160);
 
   const bullet = document.createElement("div");
   bullet.className = "bullet";
@@ -849,21 +886,23 @@ function movePlayer(){
   if(keys["ArrowUp"] || keys["w"] || keys["W"]) playerY -= speed;
   if(keys["ArrowDown"] || keys["s"] || keys["S"]) playerY += speed;
 
+  clampPlayer();
+  updatePlayer();
+}
+
+function clampPlayer(){
   playerX = Math.max(8, Math.min(window.innerWidth - 72, playerX));
 
-  const topLimit = window.innerWidth < 620 ? 105 : 82;
-  const bottomLimit = window.innerHeight - 145;
+  const topLimit = window.innerWidth < 620 ? 112 : 82;
+  const bottomLimit = window.innerHeight - 120;
 
   playerY = Math.max(topLimit, Math.min(bottomLimit, playerY));
-
-  updatePlayer();
 }
 
 function updatePlayer(){
   if(!player) return;
   player.style.left = playerX + "px";
   player.style.top = playerY + "px";
-  player.style.bottom = "auto";
 }
 
 function moveBullets(){
@@ -890,11 +929,14 @@ function moveEnemies(){
   enemies = enemies.filter(e=>{
     if(e.y > window.innerHeight + 80){
       e.el.remove();
+
       if(e.correct && running){
         loseLife("The correct answer flew away!");
       }
+
       return false;
     }
+
     return true;
   });
 
@@ -1124,12 +1166,7 @@ function shuffle(arr){
 }
 
 window.addEventListener("resize",()=>{
-  playerX = Math.max(8, Math.min(window.innerWidth - 72, playerX));
-
-  const topLimit = window.innerWidth < 620 ? 105 : 82;
-  const bottomLimit = window.innerHeight - 145;
-  playerY = Math.max(topLimit, Math.min(bottomLimit, playerY));
-
+  clampPlayer();
   updatePlayer();
 });
 </script>
