@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Multiply Flyer: Retro Sky Facts</title>
+
+<style>
+  :root{
+    --sky1:#8fd8ff;
+    --sky2:#dff6ff;
+    --ink:#172033;
+    --panel:#ffffffee;
+    --blue:#2563eb;
+    --green:#22c55e;
+    --red:#ef4444;
+    --yellow:#facc15;
+    --orange:#fb923c;
+    --purple:#8b5cf6;
+  }
+
+  *{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+  }
+
+  html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    font-family:"Comic Sans MS","Comic Neue","Trebuchet MS",sans-serif;
+    background:linear-gradient(#8fd8ff,#dff6ff);
+    color:var(--ink);
+  }
+
+  #app{
+    position:relative;
+    width:100vw;
+    height:100vh;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at 20% 18%, #fff 0 4%, transparent 5%),
+      radial-gradient(circle at 80% 12%, #fff 0 5%, transparent 6%),
+      linear-gradient(180deg,var(--sky1),var(--sky2));
+  }
+
+  .screen{
+    position:absolute;
+    inset:0;
+    display:none;
+    z-index:10;
+  }
+
+  .screen.active{
+    display:flex;
+  }
+
+  #cover{
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+    background:
+      radial-gradient(circle at 18% 20%, #ffffffbb 0 8%, transparent 9%),
+      radial-gradient(circle at 78% 15%, #ffffffaa 0 10%, transparent 11%),
+      linear-gradient(180deg,#91ddff,#fff1b8);
+  }
+
+  .cover-card{
+    width:min(780px,96vw);
+    background:linear-gradient(180deg,#ffffff,#fff7d6);
+    border:5px solid #1e3a8a;
+    border-radius:30px;
+    padding:24px;
+    text-align:center;
+    box-shadow:0 10px 0 #172554,0 18px 28px #0003;
+  }
+
+  h1{
+    margin:0;
+    font-size:clamp(2rem,6vw,4rem);
+    color:#1d4ed8;
+    text-shadow:3px 3px 0 #facc15;
+  }
+
+  .subtitle{
+    font-size:clamp(1rem,3vw,1.35rem);
+    font-weight:bold;
+    margin:10px 0 18px;
+  }
+
+  .plane-big{
+    width:150px;
+    height:120px;
+    margin:8px auto 12px;
+    position:relative;
+  }
+
+  .plane-big::before{
+    content:"";
+    position:absolute;
+    left:42px;
+    top:20px;
+    width:66px;
+    height:82px;
+    background:#2563eb;
+    border:5px solid #172554;
+    border-radius:45% 45% 18px 18px;
+    clip-path:polygon(50% 0,90% 70%,65% 100%,50% 85%,35% 100%,10% 70%);
+  }
+
+  .plane-big::after{
+    content:"";
+    position:absolute;
+    left:15px;
+    top:54px;
+    width:120px;
+    height:34px;
+    background:#fb923c;
+    border:5px solid #7c2d12;
+    border-radius:50%;
+    z-index:-1;
+  }
+
+  .btn-row{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:12px;
+    margin-top:16px;
+  }
+
+  button,a.button{
+    border:0;
+    border-radius:18px;
+    padding:13px 18px;
+    font-family:inherit;
+    font-size:1.05rem;
+    font-weight:bold;
+    cursor:pointer;
+    color:#172033;
+    text-decoration:none;
+    background:linear-gradient(#fff176,#facc15);
+    box-shadow:0 6px 0 #a16207;
+  }
+
+  button:active,a.button:active{
+    transform:translateY(4px);
+    box-shadow:0 2px 0 #a16207;
+  }
+
+  .secondary{
+    background:linear-gradient(#dbeafe,#60a5fa);
+    box-shadow:0 6px 0 #1d4ed8;
+  }
+
+  .danger{
+    background:linear-gradient(#fecaca,#f87171);
+    box-shadow:0 6px 0 #991b1b;
+  }
+
+  .success{
+    background:linear-gradient(#bbf7d0,#4ade80);
+    box-shadow:0 6px 0 #15803d;
+  }
+
+  #game{
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+  }
+
+  #hud{
+    position:absolute;
+    top:8px;
+    left:8px;
+    right:8px;
+    z-index:5;
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    gap:8px;
+    align-items:start;
+    pointer-events:none;
+  }
+
+  .hud-card{
+    background:#ffffffdd;
+    border:3px solid #1e3a8a;
+    border-radius:18px;
+    padding:8px 10px;
+    font-weight:bold;
+    box-shadow:0 4px 0 #1e3a8a;
+  }
+
+  #questionBox{
+    text-align:center;
+    font-size:clamp(1.2rem,4vw,2rem);
+    background:#fff7cc;
+    border-color:#b45309;
+    box-shadow:0 4px 0 #92400e;
+  }
+
+  #scoreBox{
+    text-align:left;
+  }
+
+  #livesBox{
+    text-align:right;
+  }
+
+  #gameArea{
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+  }
+
+  .cloud{
+    position:absolute;
+    width:110px;
+    height:42px;
+    background:#ffffffc9;
+    border-radius:999px;
+    animation:cloudMove linear infinite;
+  }
+
+  .cloud::before,.cloud::after{
+    content:"";
+    position:absolute;
+    background:#ffffffc9;
+    border-radius:50%;
+  }
+
+  .cloud::before{
+    width:55px;
+    height:55px;
+    left:18px;
+    top:-22px;
+  }
+
+  .cloud::after{
+    width:45px;
+    height:45px;
+    right:18px;
+    top:-14px;
+  }
+
+  @keyframes cloudMove{
+    from{transform:translateY(-160px);}
+    to{transform:translateY(115vh);}
+  }
+
+  #player{
+    position:absolute;
+    width:64px;
+    height:76px;
+    left:50%;
+    bottom:80px;
+    transform:translateX(-50%);
+    z-index:3;
+  }
+
+  #player .body{
+    position:absolute;
+    left:18px;
+    top:0;
+    width:28px;
+    height:70px;
+    background:#2563eb;
+    border:4px solid #172554;
+    border-radius:50% 50% 14px 14px;
+    clip-path:polygon(50% 0,86% 72%,66% 100%,50% 86%,34% 100%,14% 72%);
+  }
+
+  #player .wing{
+    position:absolute;
+    top:32px;
+    width:34px;
+    height:22px;
+    background:#fb923c;
+    border:4px solid #7c2d12;
+    border-radius:50%;
+  }
+
+  #player .wing.left{left:0;transform:rotate(-18deg);}
+  #player .wing.right{right:0;transform:rotate(18deg);}
+
+  #player .cockpit{
+    position:absolute;
+    left:25px;
+    top:16px;
+    width:14px;
+    height:18px;
+    border-radius:50%;
+    background:#bae6fd;
+    border:2px solid #0f172a;
+  }
+
+  .enemy{
+    position:absolute;
+    width:78px;
+    height:62px;
+    z-index:2;
+  }
+
+  .enemy .eBody{
+    position:absolute;
+    left:23px;
+    top:10px;
+    width:32px;
+    height:48px;
+    background:#ef4444;
+    border:4px solid #7f1d1d;
+    border-radius:20px;
+    clip-path:polygon(50% 100%,90% 30%,65% 0,50% 12%,35% 0,10% 30%);
+  }
+
+  .enemy .eWing{
+    position:absolute;
+    top:25px;
+    width:34px;
+    height:18px;
+    background:#facc15;
+    border:3px solid #854d0e;
+    border-radius:50%;
+  }
+
+  .enemy .eWing.left{left:0;}
+  .enemy .eWing.right{right:0;}
+
+  .answerTag{
+    position:absolute;
+    left:50%;
+    top:-18px;
+    transform:translateX(-50%);
+    min-width:56px;
+    text-align:center;
+    background:#ffffff;
+    border:4px solid #111827;
+    border-radius:14px;
+    padding:4px 8px;
+    font-size:1.2rem;
+    font-weight:bold;
+    box-shadow:0 3px 0 #111827;
+  }
+
+  .bullet{
+    position:absolute;
+    width:10px;
+    height:24px;
+    background:#fef08a;
+    border:2px solid #ca8a04;
+    border-radius:999px;
+    z-index:4;
+  }
+
+  .spark{
+    position:absolute;
+    width:22px;
+    height:22px;
+    background:radial-gradient(circle,#fff 0 20%,#facc15 25% 45%,#fb923c 50% 70%,transparent 72%);
+    border-radius:50%;
+    z-index:6;
+    animation:pop .35s linear forwards;
+  }
+
+  @keyframes pop{
+    from{transform:scale(.6);opacity:1;}
+    to{transform:scale(2.2);opacity:0;}
+  }
+
+  #controls{
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:8px;
+    z-index:6;
+    display:flex;
+    justify-content:space-between;
+    align-items:end;
+    padding:0 12px;
+    pointer-events:none;
+  }
+
+  .control-group{
+    display:flex;
+    gap:10px;
+    pointer-events:auto;
+  }
+
+  .ctrl{
+    width:64px;
+    height:58px;
+    border-radius:20px;
+    font-size:1.8rem;
+    padding:0;
+    background:linear-gradient(#e0f2fe,#60a5fa);
+    box-shadow:0 5px 0 #1d4ed8;
+  }
+
+  .shoot{
+    width:88px;
+    background:linear-gradient(#fecaca,#fb7185);
+    box-shadow:0 5px 0 #be123c;
+  }
+
+  #message{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    z-index:20;
+    width:min(680px,92vw);
+    background:#ffffffee;
+    border:5px solid #1e3a8a;
+    border-radius:28px;
+    padding:22px;
+    text-align:center;
+    box-shadow:0 10px 0 #172554,0 18px 28px #0004;
+    display:none;
+  }
+
+  #message h2{
+    margin:0 0 8px;
+    font-size:clamp(1.7rem,6vw,3rem);
+    color:#1d4ed8;
+  }
+
+  #message p{
+    font-weight:bold;
+    font-size:1.15rem;
+  }
+
+  .credit{
+    position:absolute;
+    right:10px;
+    bottom:4px;
+    z-index:7;
+    font-size:.75rem;
+    font-weight:bold;
+    color:#1e3a8a;
+    background:#ffffffaa;
+    padding:3px 8px;
+    border-radius:999px;
+  }
+
+  @media(max-width:620px){
+    #hud{
+      grid-template-columns:1fr 1fr;
+    }
+
+    #questionBox{
+      grid-column:1/3;
+      order:-1;
+    }
+
+    .hud-card{
+      font-size:.9rem;
+      padding:7px;
+    }
+
+    #player{
+      width:58px;
+      height:70px;
+    }
+
+    .ctrl{
+      width:58px;
+      height:54px;
+    }
+
+    .shoot{
+      width:78px;
+    }
+  }
+</style>
+</head>
+
+<body>
+<div id="app">
+
+  <section id="cover" class="screen active">
+    <div class="cover-card">
+      <h1>✈️ Multiply Flyer</h1>
+      <div class="subtitle">Retro Sky Facts — Singapore Primary 3 Multiplication Practice</div>
+      <div class="plane-big"></div>
+      <p><b>Mission:</b> Shoot the enemy plane carrying the correct multiplication answer.</p>
+      <p>Clear 12 multiplication facts. Wrong answers cost a life!</p>
+      <div class="btn-row">
+        <button onclick="startGame()">Start Mission</button>
+        <button class="secondary" onclick="showHow()">How to Play</button>
+        <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="playScreen" class="screen">
+    <div id="game">
+      <div id="gameArea"></div>
+
+      <div id="hud">
+        <div id="scoreBox" class="hud-card">Score: <span id="score">0</span>/12<br>Fact: <span id="factNo">1</span>/12</div>
+        <div id="questionBox" class="hud-card">6 × 7 = ?</div>
+        <div id="livesBox" class="hud-card">Lives: <span id="lives">❤️❤️❤️</span><br>Streak: <span id="streak">0</span></div>
+      </div>
+
+      <div id="player">
+        <div class="wing left"></div>
+        <div class="wing right"></div>
+        <div class="body"></div>
+        <div class="cockpit"></div>
+      </div>
+
+      <div id="controls">
+        <div class="control-group">
+          <button class="ctrl" id="leftBtn">◀</button>
+          <button class="ctrl" id="rightBtn">▶</button>
+        </div>
+        <div class="control-group">
+          <button class="ctrl shoot" id="shootBtn">🔥</button>
+        </div>
+      </div>
+
+      <div id="message"></div>
+      <div class="credit">Designed by Lim Kim Sze © 2026</div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const TOTAL = 12;
+const facts = [
+  [6,6],[6,7],[6,8],[6,9],
+  [7,7],[7,8],[7,9],
+  [8,8],[8,9],
+  [9,9],[6,12],[7,12]
+];
+
+let gameArea, player;
+let playerX = 0;
+let score = 0;
+let lives = 3;
+let streak = 0;
+let current = 0;
+let correctAnswer = 0;
+let enemies = [];
+let bullets = [];
+let keys = {};
+let running = false;
+let lastEnemySpawn = 0;
+let enemySpeed = 1.15;
+let bulletSpeed = 8;
+let animationId = null;
+let shootCooldown = false;
+let audioCtx = null;
+
+function $(id){ return document.getElementById(id); }
+
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  $(id).classList.add("active");
+}
+
+function showHow(){
+  $("cover").querySelector(".cover-card").innerHTML = `
+    <h1>How to Play</h1>
+    <p><b>Desktop:</b> Use ← → arrow keys to move. Press Space to shoot.</p>
+    <p><b>Mobile:</b> Use the ◀ ▶ buttons and 🔥 shoot button.</p>
+    <p>Shoot only the plane with the correct multiplication answer.</p>
+    <p>Wrong answer = lose 1 life. Clear 12 facts to win.</p>
+    <div class="btn-row">
+      <button onclick="location.reload()">Back</button>
+      <button class="success" onclick="startGame()">Start Mission</button>
+    </div>
+  `;
+}
+
+function startGame(){
+  showScreen("playScreen");
+  gameArea = $("gameArea");
+  player = $("player");
+
+  score = 0;
+  lives = 3;
+  streak = 0;
+  current = 0;
+  enemies = [];
+  bullets = [];
+  keys = {};
+  running = true;
+  enemySpeed = 1.15;
+  shootCooldown = false;
+
+  gameArea.innerHTML = "";
+  $("message").style.display = "none";
+
+  playerX = window.innerWidth / 2 - 32;
+  updatePlayer();
+
+  shuffle(facts);
+  makeClouds();
+  nextFact();
+  bindControls();
+
+  if(animationId) cancelAnimationFrame(animationId);
+  animationId = requestAnimationFrame(loop);
+}
+
+function bindControls(){
+  document.onkeydown = e => {
+    keys[e.key] = true;
+    if(e.code === "Space"){
+      e.preventDefault();
+      shoot();
+    }
+  };
+
+  document.onkeyup = e => keys[e.key] = false;
+
+  holdButton("leftBtn", () => keys["ArrowLeft"] = true, () => keys["ArrowLeft"] = false);
+  holdButton("rightBtn", () => keys["ArrowRight"] = true, () => keys["ArrowRight"] = false);
+
+  const shootBtn = $("shootBtn");
+  shootBtn.ontouchstart = e => { e.preventDefault(); shoot(); };
+  shootBtn.onmousedown = e => { e.preventDefault(); shoot(); };
+}
+
+function holdButton(id, down, up){
+  const btn = $(id);
+  btn.ontouchstart = e => { e.preventDefault(); down(); };
+  btn.ontouchend = e => { e.preventDefault(); up(); };
+  btn.ontouchcancel = e => { e.preventDefault(); up(); };
+  btn.onmousedown = e => { e.preventDefault(); down(); };
+  btn.onmouseup = e => { e.preventDefault(); up(); };
+  btn.onmouseleave = e => { e.preventDefault(); up(); };
+}
+
+function nextFact(){
+  if(current >= TOTAL){
+    winGame();
+    return;
+  }
+
+  const [a,b] = facts[current % facts.length];
+  correctAnswer = a * b;
+  $("questionBox").textContent = `${a} × ${b} = ?`;
+  $("factNo").textContent = current + 1;
+
+  clearEnemiesAndBullets();
+  spawnAnswerWave();
+  updateHud();
+}
+
+function spawnAnswerWave(){
+  const answers = generateAnswers(correctAnswer);
+  const lanes = [0.18,0.38,0.58,0.78].sort(()=>Math.random()-0.5);
+
+  answers.forEach((ans,i)=>{
+    createEnemy(window.innerWidth * lanes[i], -80 - Math.random()*80, ans, ans === correctAnswer);
+  });
+}
+
+function generateAnswers(correct){
+  const set = new Set([correct]);
+  while(set.size < 4){
+    const offset = [-12,-9,-8,-7,-6,-5,-4,-3,3,4,5,6,7,8,9,12][Math.floor(Math.random()*16)];
+    let value = correct + offset;
+    if(value > 0) set.add(value);
+  }
+  return Array.from(set).sort(()=>Math.random()-0.5);
+}
+
+function createEnemy(x,y,answer,isCorrect){
+  const el = document.createElement("div");
+  el.className = "enemy";
+  el.style.left = x + "px";
+  el.style.top = y + "px";
+  el.dataset.answer = answer;
+  el.dataset.correct = isCorrect ? "1" : "0";
+
+  el.innerHTML = `
+    <div class="answerTag">${answer}</div>
+    <div class="eWing left"></div>
+    <div class="eWing right"></div>
+    <div class="eBody"></div>
+  `;
+
+  gameArea.appendChild(el);
+  enemies.push({
+    el,
+    x,
+    y,
+    answer,
+    correct:isCorrect,
+    speed:enemySpeed + Math.random()*0.35
+  });
+}
+
+function shoot(){
+  if(!running || shootCooldown) return;
+  shootCooldown = true;
+  setTimeout(()=>shootCooldown=false,180);
+
+  const bullet = document.createElement("div");
+  bullet.className = "bullet";
+  const x = playerX + 27;
+  const y = window.innerHeight - 150;
+
+  bullet.style.left = x + "px";
+  bullet.style.top = y + "px";
+  gameArea.appendChild(bullet);
+
+  bullets.push({el:bullet,x,y});
+  playShoot();
+}
+
+function loop(timestamp){
+  if(!running) return;
+
+  movePlayer();
+  moveBullets();
+  moveEnemies();
+  checkCollisions();
+
+  animationId = requestAnimationFrame(loop);
+}
+
+function movePlayer(){
+  const speed = 6.5;
+  if(keys["ArrowLeft"] || keys["a"]) playerX -= speed;
+  if(keys["ArrowRight"] || keys["d"]) playerX += speed;
+
+  playerX = Math.max(8, Math.min(window.innerWidth - 72, playerX));
+  updatePlayer();
+}
+
+function updatePlayer(){
+  player.style.left = playerX + "px";
+}
+
+function moveBullets(){
+  bullets.forEach(b=>{
+    b.y -= bulletSpeed;
+    b.el.style.top = b.y + "px";
+  });
+
+  bullets = bullets.filter(b=>{
+    if(b.y < -40){
+      b.el.remove();
+      return false;
+    }
+    return true;
+  });
+}
+
+function moveEnemies(){
+  enemies.forEach(e=>{
+    e.y += e.speed;
+    e.el.style.top = e.y + "px";
+  });
+
+  enemies = enemies.filter(e=>{
+    if(e.y > window.innerHeight + 80){
+      e.el.remove();
+      if(e.correct && running){
+        loseLife("The correct answer flew away!");
+      }
+      return false;
+    }
+    return true;
+  });
+
+  if(enemies.length === 0 && running){
+    spawnAnswerWave();
+  }
+}
+
+function checkCollisions(){
+  for(let bi = bullets.length - 1; bi >= 0; bi--){
+    const b = bullets[bi];
+    const br = b.el.getBoundingClientRect();
+
+    for(let ei = enemies.length - 1; ei >= 0; ei--){
+      const e = enemies[ei];
+      const er = e.el.getBoundingClientRect();
+
+      if(rectHit(br,er)){
+        makeSpark(e.x + 36, e.y + 26);
+        b.el.remove();
+        e.el.remove();
+        bullets.splice(bi,1);
+        enemies.splice(ei,1);
+
+        if(e.correct){
+          score++;
+          streak++;
+          current++;
+          playCorrect();
+          enemySpeed = Math.min(2.2, enemySpeed + 0.05);
+          updateHud();
+          setTimeout(nextFact,450);
+        }else{
+          streak = 0;
+          playWrong();
+          loseLife("Oops! That was a wrong answer.");
+        }
+        return;
+      }
+    }
+  }
+}
+
+function rectHit(a,b){
+  return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
+}
+
+function loseLife(text){
+  lives--;
+  streak = 0;
+  updateHud();
+
+  if(lives <= 0){
+    endGame(false);
+  }else{
+    showFloatingMessage(text + " Try the next wave!", 750);
+    clearEnemiesAndBullets();
+    setTimeout(spawnAnswerWave,650);
+  }
+}
+
+function updateHud(){
+  $("score").textContent = score;
+  $("lives").textContent = "❤️".repeat(lives) + "♡".repeat(3-lives);
+  $("streak").textContent = streak;
+}
+
+function clearEnemiesAndBullets(){
+  enemies.forEach(e=>e.el.remove());
+  bullets.forEach(b=>b.el.remove());
+  enemies = [];
+  bullets = [];
+}
+
+function winGame(){
+  running = false;
+  clearEnemiesAndBullets();
+  playWin();
+  burstConfetti(80);
+
+  $("message").innerHTML = `
+    <h2>Mission Complete! 🎉</h2>
+    <p>You cleared all 12 multiplication facts.</p>
+    <p>Final Score: <b>${score}/12</b></p>
+    <p>Expect a silly victory dance from the plane!</p>
+    <div class="btn-row">
+      <button class="success" onclick="startGame()">Play Again</button>
+      <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
+    </div>
+  `;
+  $("message").style.display = "block";
+  sillyPlaneDance();
+}
+
+function endGame(){
+  running = false;
+  clearEnemiesAndBullets();
+
+  $("message").innerHTML = `
+    <h2>Mission Paused! ✈️</h2>
+    <p>You scored <b>${score}/12</b>.</p>
+    <p>Practise again to become a Times Table Ace!</p>
+    <div class="btn-row">
+      <button class="success" onclick="startGame()">Try Again</button>
+      <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
+    </div>
+  `;
+  $("message").style.display = "block";
+}
+
+function showFloatingMessage(text,ms){
+  const msg = $("message");
+  msg.innerHTML = `<h2>Careful!</h2><p>${text}</p>`;
+  msg.style.display = "block";
+  setTimeout(()=>{ if(running) msg.style.display = "none"; }, ms);
+}
+
+function makeSpark(x,y){
+  const s = document.createElement("div");
+  s.className = "spark";
+  s.style.left = x + "px";
+  s.style.top = y + "px";
+  gameArea.appendChild(s);
+  setTimeout(()=>s.remove(),400);
+}
+
+function makeClouds(){
+  for(let i=0;i<8;i++){
+    const c = document.createElement("div");
+    c.className = "cloud";
+    c.style.left = Math.random()*100 + "vw";
+    c.style.top = -Math.random()*100 + "px";
+    c.style.opacity = 0.45 + Math.random()*0.35;
+    c.style.animationDuration = 8 + Math.random()*7 + "s";
+    c.style.animationDelay = -Math.random()*8 + "s";
+    gameArea.appendChild(c);
+  }
+}
+
+function sillyPlaneDance(){
+  let t = 0;
+  const dance = setInterval(()=>{
+    t++;
+    player.style.transform = `translateX(-50%) rotate(${Math.sin(t)*18}deg) scale(${1 + Math.sin(t*1.5)*0.08})`;
+    player.style.bottom = `${80 + Math.sin(t)*18}px`;
+    if(t > 28){
+      clearInterval(dance);
+      player.style.transform = "translateX(-50%)";
+      player.style.bottom = "80px";
+    }
+  },90);
+}
+
+function burstConfetti(count){
+  const colors = ["#ef4444","#facc15","#22c55e","#3b82f6","#a855f7","#fb923c"];
+  for(let i=0;i<count;i++){
+    const p = document.createElement("div");
+    p.style.position = "fixed";
+    p.style.left = Math.random()*100 + "vw";
+    p.style.top = "-20px";
+    p.style.width = "12px";
+    p.style.height = "18px";
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    p.style.borderRadius = "4px";
+    p.style.zIndex = 100;
+    p.style.animation = `fall ${1.5 + Math.random()*1.5}s linear forwards`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),3000);
+  }
+}
+
+const style = document.createElement("style");
+style.textContent = `
+@keyframes fall{
+  to{transform:translateY(110vh) rotate(720deg);opacity:.4;}
+}`;
+document.head.appendChild(style);
+
+function getAudio(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function beep(freq,dur,type="sine",gainVal=.06){
+  try{
+    const ctx = getAudio();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = type;
+    o.frequency.value = freq;
+    g.gain.value = gainVal;
+    o.connect(g);
+    g.connect(ctx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+dur);
+    o.stop(ctx.currentTime+dur);
+  }catch(e){}
+}
+
+function playShoot(){ beep(520,.06,"square",.035); }
+function playCorrect(){ beep(660,.08); setTimeout(()=>beep(880,.1),90); }
+function playWrong(){ beep(180,.13,"sawtooth",.045); setTimeout(()=>beep(130,.13,"sawtooth",.045),110); }
+function playWin(){ [523,659,784,1046].forEach((n,i)=>setTimeout(()=>beep(n,.12),i*120)); }
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+}
+
+window.addEventListener("resize",()=>{
+  playerX = Math.max(8, Math.min(window.innerWidth - 72, playerX));
+  updatePlayer();
+});
+</script>
+</body>
+</html>
