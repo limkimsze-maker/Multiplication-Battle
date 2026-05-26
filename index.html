@@ -3,12 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Multiply Flyer: Sky Commander</title>
+<title>Multiply Flyer: Space Commander</title>
 
 <style>
   :root{
-    --sky1:#8fd8ff;
-    --sky2:#dff6ff;
     --ink:#172033;
   }
 
@@ -36,7 +34,7 @@
     height:100%;
     overflow:hidden;
     font-family:"Comic Sans MS","Comic Neue","Trebuchet MS",sans-serif;
-    background:linear-gradient(#8fd8ff,#dff6ff);
+    background:#050816;
     color:var(--ink);
     touch-action:none;
   }
@@ -47,9 +45,13 @@
     height:100vh;
     overflow:hidden;
     background:
-      radial-gradient(circle at 20% 18%, #fff 0 4%, transparent 5%),
-      radial-gradient(circle at 80% 12%, #fff 0 5%, transparent 6%),
-      linear-gradient(180deg,var(--sky1),var(--sky2));
+      radial-gradient(circle at 12% 18%, #ffffff 0 1px, transparent 2px),
+      radial-gradient(circle at 26% 62%, #ffffff 0 1.5px, transparent 2.5px),
+      radial-gradient(circle at 74% 14%, #ffffff 0 1.5px, transparent 2.5px),
+      radial-gradient(circle at 88% 42%, #ffffff 0 1px, transparent 2px),
+      radial-gradient(circle at 64% 78%, #c4b5fd 0 1.5px, transparent 3px),
+      radial-gradient(circle at 38% 32%, #93c5fd 0 1px, transparent 2px),
+      linear-gradient(180deg,#050816 0%, #0b1026 45%, #111827 100%);
   }
 
   .screen{
@@ -68,25 +70,27 @@
     justify-content:center;
     padding:18px;
     background:
-      radial-gradient(circle at 18% 20%, #ffffffbb 0 8%, transparent 9%),
-      radial-gradient(circle at 78% 15%, #ffffffaa 0 10%, transparent 11%),
-      linear-gradient(180deg,#91ddff,#fff1b8);
+      radial-gradient(circle at 15% 18%, #ffffff 0 2px, transparent 3px),
+      radial-gradient(circle at 30% 70%, #ffffff 0 2px, transparent 3px),
+      radial-gradient(circle at 78% 15%, #c4b5fd 0 3px, transparent 4px),
+      radial-gradient(circle at 88% 52%, #ffffff 0 2px, transparent 3px),
+      linear-gradient(180deg,#071226,#101935,#1f1147);
   }
 
   .cover-card{
     width:min(860px,96vw);
-    background:linear-gradient(180deg,#ffffff,#fff7d6);
-    border:5px solid #1e3a8a;
+    background:linear-gradient(180deg,#ffffff,#eef2ff);
+    border:5px solid #4f46e5;
     border-radius:30px;
     padding:24px;
     text-align:center;
-    box-shadow:0 10px 0 #172554,0 18px 28px #0003;
+    box-shadow:0 10px 0 #312e81,0 18px 28px #0006;
   }
 
   h1{
     margin:0;
     font-size:clamp(2rem,6vw,4rem);
-    color:#1d4ed8;
+    color:#4f46e5;
     text-shadow:3px 3px 0 #facc15;
   }
 
@@ -105,15 +109,15 @@
 
   .level-card{
     background:#eff6ff;
-    border:3px solid #1d4ed8;
+    border:3px solid #4f46e5;
     border-radius:18px;
     padding:10px;
     font-weight:bold;
   }
 
   .plane-big{
-    width:150px;
-    height:120px;
+    width:160px;
+    height:130px;
     margin:8px auto 12px;
     position:relative;
   }
@@ -121,27 +125,27 @@
   .plane-big::before{
     content:"";
     position:absolute;
-    left:42px;
-    top:20px;
-    width:66px;
-    height:82px;
-    background:#2563eb;
-    border:5px solid #172554;
-    border-radius:45% 45% 18px 18px;
-    clip-path:polygon(50% 0,90% 70%,65% 100%,50% 85%,35% 100%,10% 70%);
+    left:52px;
+    top:18px;
+    width:56px;
+    height:86px;
+    background:linear-gradient(180deg,#cbd5e1,#60a5fa);
+    border:5px solid #1e3a8a;
+    border-radius:50% 50% 24px 24px;
+    clip-path:polygon(50% 0,82% 20%,92% 65%,68% 100%,50% 88%,32% 100%,8% 65%,18% 20%);
   }
 
   .plane-big::after{
     content:"";
     position:absolute;
-    left:15px;
-    top:54px;
+    left:20px;
+    top:60px;
     width:120px;
-    height:34px;
-    background:#fb923c;
-    border:5px solid #7c2d12;
-    border-radius:50%;
-    z-index:-1;
+    height:26px;
+    background:linear-gradient(90deg,#a78bfa,#22d3ee,#a78bfa);
+    border:4px solid #312e81;
+    border-radius:999px;
+    box-shadow:0 0 14px #67e8f9;
   }
 
   .btn-row{
@@ -210,11 +214,11 @@
 
   .hud-card{
     background:#ffffffdd;
-    border:3px solid #1e3a8a;
+    border:3px solid #4f46e5;
     border-radius:18px;
     padding:8px 10px;
     font-weight:bold;
-    box-shadow:0 4px 0 #1e3a8a;
+    box-shadow:0 4px 0 #312e81;
   }
 
   #questionBox{
@@ -230,32 +234,33 @@
 
   .cloud{
     position:absolute;
-    width:110px;
-    height:42px;
-    background:#ffffffc9;
-    border-radius:999px;
+    width:4px;
+    height:4px;
+    background:#ffffffdd;
+    border-radius:50%;
+    box-shadow:0 0 8px #ffffff;
     animation:cloudMove linear infinite;
   }
 
   .cloud::before,.cloud::after{
     content:"";
     position:absolute;
-    background:#ffffffc9;
     border-radius:50%;
+    background:#ffffffcc;
   }
 
   .cloud::before{
-    width:55px;
-    height:55px;
-    left:18px;
-    top:-22px;
+    width:2px;
+    height:2px;
+    left:10px;
+    top:16px;
   }
 
   .cloud::after{
-    width:45px;
-    height:45px;
-    right:18px;
-    top:-14px;
+    width:3px;
+    height:3px;
+    left:-8px;
+    top:12px;
   }
 
   @keyframes cloudMove{
@@ -277,42 +282,54 @@
   #player .body{
     position:absolute;
     left:18px;
-    top:0;
+    top:2px;
     width:28px;
-    height:70px;
-    background:#2563eb;
-    border:4px solid #172554;
-    border-radius:50% 50% 14px 14px;
-    clip-path:polygon(50% 0,86% 72%,66% 100%,50% 86%,34% 100%,14% 72%);
+    height:66px;
+    background:linear-gradient(180deg,#dbeafe,#60a5fa);
+    border:4px solid #1e3a8a;
+    border-radius:50% 50% 16px 16px;
+    clip-path:polygon(50% 0,80% 16%,92% 68%,68% 100%,50% 88%,32% 100%,8% 68%,20% 16%);
   }
 
   #player .wing{
     position:absolute;
-    top:32px;
-    width:34px;
-    height:22px;
-    background:#fb923c;
-    border:4px solid #7c2d12;
-    border-radius:50%;
+    top:34px;
+    width:28px;
+    height:18px;
+    background:linear-gradient(90deg,#c4b5fd,#22d3ee);
+    border:3px solid #312e81;
+    border-radius:999px;
+    box-shadow:0 0 8px #67e8f9;
   }
 
-  #player .wing.left{left:0;transform:rotate(-18deg);}
-  #player .wing.right{right:0;transform:rotate(18deg);}
+  #player .wing.left{
+    left:0;
+    transform:rotate(-12deg);
+  }
+
+  #player .wing.right{
+    right:0;
+    transform:rotate(12deg);
+  }
 
   #player .cockpit{
     position:absolute;
-    left:25px;
-    top:16px;
-    width:14px;
+    left:24px;
+    top:18px;
+    width:16px;
     height:18px;
     border-radius:50%;
-    background:#bae6fd;
+    background:#a5f3fc;
     border:2px solid #0f172a;
   }
 
-  #player.level1 .body{background:#2563eb;}
+  #player.level1 .body{
+    background:linear-gradient(180deg,#dbeafe,#60a5fa);
+  }
 
-  #player.level2 .body{background:#16a34a;}
+  #player.level2 .body{
+    background:linear-gradient(180deg,#dcfce7,#22c55e);
+  }
 
   #player.level2 .body::after{
     content:"";
@@ -328,7 +345,7 @@
   }
 
   #player.level3 .body{
-    background:#7c3aed;
+    background:linear-gradient(180deg,#ddd6fe,#8b5cf6);
     box-shadow:0 0 16px #a78bfa;
   }
 
@@ -355,28 +372,28 @@
 
   .enemy .eBody{
     position:absolute;
-    left:23px;
-    top:10px;
-    width:32px;
-    height:48px;
-    background:#ef4444;
-    border:4px solid #7f1d1d;
-    border-radius:20px;
-    clip-path:polygon(50% 100%,90% 30%,65% 0,50% 12%,35% 0,10% 30%);
+    left:20px;
+    top:14px;
+    width:36px;
+    height:24px;
+    background:linear-gradient(180deg,#86efac,#22c55e);
+    border:4px solid #14532d;
+    border-radius:50% 50% 40% 40%;
+    box-shadow:0 0 10px #86efac;
   }
 
   .enemy .eWing{
     position:absolute;
-    top:25px;
-    width:34px;
-    height:18px;
-    background:#facc15;
-    border:3px solid #854d0e;
-    border-radius:50%;
+    top:24px;
+    width:24px;
+    height:14px;
+    background:linear-gradient(90deg,#fca5a5,#ef4444);
+    border:3px solid #7f1d1d;
+    border-radius:999px;
   }
 
-  .enemy .eWing.left{left:0;}
-  .enemy .eWing.right{right:0;}
+  .enemy .eWing.left{left:4px;}
+  .enemy .eWing.right{right:4px;}
 
   .answerTag{
     position:absolute;
@@ -519,11 +536,11 @@
     z-index:100;
     width:min(780px,92vw);
     background:#ffffffee;
-    border:5px solid #1e3a8a;
+    border:5px solid #4f46e5;
     border-radius:28px;
     padding:22px;
     text-align:center;
-    box-shadow:0 10px 0 #172554,0 18px 28px #0004;
+    box-shadow:0 10px 0 #312e81,0 18px 28px #0007;
     display:none;
     max-height:90vh;
     overflow:hidden;
@@ -532,7 +549,7 @@
   #message h2{
     margin:0 0 8px;
     font-size:clamp(1.7rem,6vw,3rem);
-    color:#1d4ed8;
+    color:#4f46e5;
   }
 
   #message p{
@@ -542,12 +559,15 @@
 
   .land-scene{
     position:relative;
-    min-height:310px;
-    border:5px solid #166534;
+    min-height:320px;
+    border:5px solid #312e81;
     border-radius:28px;
     background:
-      radial-gradient(circle at 20% 20%, #ffffffaa 0 8%, transparent 9%),
-      linear-gradient(180deg,#93c5fd 0 45%, #86efac 46% 100%);
+      radial-gradient(circle at 12% 18%, #ffffff 0 2px, transparent 3px),
+      radial-gradient(circle at 24% 72%, #ffffff 0 2px, transparent 3px),
+      radial-gradient(circle at 80% 20%, #c4b5fd 0 3px, transparent 4px),
+      radial-gradient(circle at 68% 68%, #93c5fd 0 2px, transparent 3px),
+      linear-gradient(180deg,#050816 0%, #111827 100%);
     overflow:hidden;
     margin:10px 0;
   }
@@ -555,15 +575,16 @@
   .land-plane{
     position:absolute;
     left:50%;
-    top:35px;
-    transform:translateX(-50%) rotate(90deg);
-    font-size:3.5rem;
+    top:32px;
+    transform:translateX(-50%);
+    font-size:3.2rem;
     animation:landPlane 1s ease-out forwards;
+    z-index:3;
   }
 
   @keyframes landPlane{
-    from{transform:translate(-50%,-120px) rotate(90deg);}
-    to{transform:translate(-50%,0) rotate(90deg);}
+    from{transform:translate(-50%,-120px) scale(.8);}
+    to{transform:translate(-50%,0) scale(1);}
   }
 
   .fact-field{
@@ -591,6 +612,60 @@
   .fact-tile.blast{
     transform:scale(0) rotate(360deg);
     opacity:0;
+  }
+
+  .bomb-missile{
+    position:absolute;
+    left:50%;
+    top:88px;
+    width:22px;
+    height:42px;
+    transform:translateX(-50%);
+    background:linear-gradient(180deg,#fca5a5,#dc2626);
+    border:3px solid #7f1d1d;
+    border-radius:12px 12px 8px 8px;
+    box-shadow:0 0 12px #f87171;
+    z-index:4;
+  }
+
+  .bomb-missile::before{
+    content:"";
+    position:absolute;
+    left:50%;
+    top:-10px;
+    transform:translateX(-50%);
+    width:10px;
+    height:12px;
+    background:#fde68a;
+    clip-path:polygon(50% 0,100% 100%,0 100%);
+  }
+
+  .bomb-missile.launch{
+    animation:missileDrop .95s ease-in forwards;
+  }
+
+  @keyframes missileDrop{
+    0%{ top:88px; opacity:1; }
+    100%{ top:210px; opacity:1; }
+  }
+
+  .space-flash{
+    position:absolute;
+    left:50%;
+    top:210px;
+    transform:translateX(-50%);
+    width:32px;
+    height:32px;
+    border-radius:50%;
+    background:radial-gradient(circle,#fff 0 20%, #facc15 35%, #ef4444 65%, transparent 72%);
+    box-shadow:0 0 30px #f97316;
+    z-index:5;
+    animation:flashBoom .5s ease-out forwards;
+  }
+
+  @keyframes flashBoom{
+    0%{ transform:translateX(-50%) scale(.2); opacity:1; }
+    100%{ transform:translateX(-50%) scale(4.5); opacity:0; }
   }
 
   .bomb-button{
@@ -635,7 +710,7 @@
     font-size:clamp(3rem,12vw,6rem);
     line-height:1;
     font-weight:900;
-    color:#1d4ed8;
+    color:#4f46e5;
     text-shadow:4px 4px 0 #ffffff, 7px 7px 0 #f97316;
     margin:10px 0;
   }
@@ -652,7 +727,7 @@
     margin:8px 0;
     border-radius:999px;
     background:#eff6ff;
-    border:3px solid #1d4ed8;
+    border:3px solid #4f46e5;
     font-weight:bold;
     font-size:1.1rem;
   }
@@ -664,8 +739,8 @@
     z-index:7;
     font-size:.75rem;
     font-weight:bold;
-    color:#1e3a8a;
-    background:#ffffffaa;
+    color:#fff;
+    background:#00000088;
     padding:3px 8px;
     border-radius:999px;
   }
@@ -802,8 +877,8 @@
 
   <section id="cover" class="screen active">
     <div class="cover-card">
-      <h1>✈️ Multiply Flyer</h1>
-      <div class="subtitle">Sky Commander — Multiplication Facts Mission</div>
+      <h1>🚀 Multiply Flyer</h1>
+      <div class="subtitle">Space Commander — Multiplication Facts Mission</div>
       <div class="plane-big"></div>
 
       <div class="level-list">
@@ -812,9 +887,9 @@
         <div class="level-card">Level 3<br>×2 to ×12<br>Promotion: General<br>Weapon: Laser Gun</div>
       </div>
 
-      <p><b>Mission:</b> Shoot the enemy plane carrying the correct multiplication answer.</p>
-      <p>At the end of each stage, land your plane and clear the multiplication facts with a bomb!</p>
-      <p><b>Mobile tip:</b> Drag the plane with your finger or use the buttons.</p>
+      <p><b>Mission:</b> Shoot the alien spaceship carrying the correct multiplication answer.</p>
+      <p>At the end of each stage, your spaceship launches a bomb to destroy the multiplication facts in space!</p>
+      <p><b>Mobile tip:</b> Drag the spaceship with your finger or use the buttons.</p>
 
       <div class="btn-row">
         <button onclick="startGame()">Start Mission</button>
@@ -949,10 +1024,10 @@ function showHow(){
   $("cover").querySelector(".cover-card").innerHTML = `
     <h1>How to Play</h1>
     <p><b>Desktop:</b> Use ← → ↑ ↓ or WASD to move. Press Space to shoot.</p>
-    <p><b>Mobile:</b> Drag the plane with your finger or use the direction buttons. Press 🔥 to shoot.</p>
-    <p>Shoot only the plane with the correct multiplication answer.</p>
-    <p>Enemy planes shoot only once when they appear. Their red shots are slow and easy to dodge.</p>
-    <p>After each stage, press the red bomb button to destroy the multiplication facts and earn your promotion.</p>
+    <p><b>Mobile:</b> Drag the spaceship with your finger or use the direction buttons. Press 🔥 to shoot.</p>
+    <p>Shoot only the alien spaceship with the correct multiplication answer.</p>
+    <p>Enemy spaceships shoot only once when they appear. Their red shots are slow and easy to dodge.</p>
+    <p>After each stage, press the red bomb button to launch a bomb from your spaceship and destroy the multiplication facts.</p>
     <div class="btn-row">
       <button onclick="location.reload()">Back</button>
       <button class="success" onclick="startGame()">Start Mission</button>
@@ -1513,20 +1588,20 @@ function showLandingFacts(){
   const factsHtml = makeStageFactTiles(level.tables);
 
   $("message").innerHTML = `
-    <h2>Stage ${levelIndex + 1} Cleared! ✈️</h2>
+    <h2>Stage ${levelIndex + 1} Cleared! 🚀</h2>
 
     <div class="land-scene">
-      <div class="land-plane">✈️</div>
+      <div class="land-plane">🚀</div>
       <div class="fact-field" id="factField">
         ${factsHtml}
       </div>
     </div>
 
-    <p>Your plane has reached land full of multiplication facts.</p>
-    <p>Press the red bomb button to clear the facts and receive your promotion!</p>
+    <p>Your spaceship has reached a multiplication sector in space.</p>
+    <p>Press the red bomb button to launch a bomb from your spaceship and destroy the multiplication facts!</p>
 
     <div class="btn-row">
-      <button class="bomb-button" onclick="blastFacts()">💣 Clear the Facts!</button>
+      <button class="bomb-button" onclick="blastFacts()">💣 Launch Space Bomb!</button>
     </div>
   `;
 
@@ -1551,24 +1626,47 @@ function makeStageFactTiles(tables){
 }
 
 function blastFacts(){
+  const scene = document.querySelector(".land-scene");
   const tiles = document.querySelectorAll(".fact-tile");
 
-  tiles.forEach((tile, index)=>{
-    setTimeout(()=>{
-      tile.classList.add("blast");
-      playWrong();
-    }, index * 45);
-  });
+  if(!scene) return;
+
+  const missile = document.createElement("div");
+  missile.className = "bomb-missile";
+  scene.appendChild(missile);
 
   setTimeout(()=>{
-    $("factField").innerHTML = `<div class="blast-word">BOOM!</div>`;
-    burstConfetti(70);
+    missile.classList.add("launch");
+  }, 30);
+
+  setTimeout(()=>{
+    const flash = document.createElement("div");
+    flash.className = "space-flash";
+    scene.appendChild(flash);
     playPromotionSound();
-  }, tiles.length * 45 + 150);
+    burstConfetti(40);
+
+    tiles.forEach((tile, index)=>{
+      setTimeout(()=>{
+        tile.classList.add("blast");
+        playWrong();
+      }, index * 35);
+    });
+
+    setTimeout(()=>flash.remove(), 520);
+  }, 950);
+
+  setTimeout(()=>{
+    const factField = $("factField");
+    if(factField){
+      factField.innerHTML = `<div class="blast-word">KABOOM!</div>`;
+    }
+    missile.remove();
+  }, 1450);
 
   setTimeout(()=>{
     showPromotionScreen();
-  }, tiles.length * 45 + 1100);
+  }, 2350);
 }
 
 function showPromotionScreen(){
@@ -1586,7 +1684,7 @@ function showPromotionScreen(){
       </div>
       <p>You completed ${level.name}.</p>
       <p>Level Score: <b>${score}/${facts.length}</b></p>
-      <p>Your plane has been upgraded for the next mission.</p>
+      <p>Your spaceship has been upgraded for the next mission.</p>
       <div class="btn-row">
         <button class="success" onclick="continueToNextLevel()">Continue to Level ${levelIndex + 2}</button>
         <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
@@ -1602,7 +1700,7 @@ function showPromotionScreen(){
         <div class="weapon-note">All missions completed!</div>
       </div>
       <p>Total Score: <b>${totalScore}/${LEVELS.reduce((sum,l)=>sum+l.questions,0)}</b></p>
-      <p>Outstanding flying, General! Expect a silly victory dance from the plane!</p>
+      <p>Outstanding flying, General! Expect a silly victory dance from the spaceship!</p>
       <div class="btn-row">
         <button class="success" onclick="startGame()">Play Again</button>
         <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
@@ -1627,7 +1725,7 @@ function endGame(){
   clearEnemiesAndBullets();
 
   $("message").innerHTML = `
-    <h2>Mission Paused! ✈️</h2>
+    <h2>Mission Paused! 🚀</h2>
     <p>You reached Level ${levelIndex + 1}.</p>
     <p>Current Rank: <b>${LEVELS[levelIndex].currentRank}</b></p>
     <p>Level Score: <b>${score}/${facts.length}</b></p>
@@ -1684,13 +1782,13 @@ function makeSpark(x,y){
 }
 
 function makeClouds(){
-  for(let i=0;i<8;i++){
+  for(let i=0;i<10;i++){
     const c = document.createElement("div");
     c.className = "cloud";
     c.style.left = Math.random()*100 + "vw";
     c.style.top = -Math.random()*100 + "px";
-    c.style.opacity = 0.45 + Math.random()*0.35;
-    c.style.animationDuration = 8 + Math.random()*7 + "s";
+    c.style.opacity = 0.18 + Math.random()*0.18;
+    c.style.animationDuration = 14 + Math.random()*8 + "s";
     c.style.animationDelay = -Math.random()*8 + "s";
     gameArea.appendChild(c);
   }
