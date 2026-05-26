@@ -360,10 +360,7 @@
     position:absolute;
     left:0;
     right:0;
-
-    /* Raised above Android/Samsung browser bottom bar */
     bottom:calc(90px + env(safe-area-inset-bottom));
-
     z-index:80;
     display:flex;
     justify-content:space-between;
@@ -510,6 +507,17 @@
       width:90px;
       height:76px;
       font-size:1.85rem;
+    }
+
+    .enemy{
+      width:72px;
+      height:58px;
+    }
+
+    .answerTag{
+      font-size:1rem;
+      min-width:50px;
+      padding:3px 6px;
     }
 
     .credit{
@@ -808,10 +816,35 @@ function nextFact(){
 
 function spawnAnswerWave(){
   const answers = generateAnswers(correctAnswer);
-  const lanes = [0.18,0.38,0.58,0.78].sort(()=>Math.random()-0.5);
+
+  /*
+    Mobile-friendly placement:
+    - fixed safe columns
+    - no horizontal overlap
+    - vertical stagger so enemies arrive one by one
+  */
+  const enemyWidth = window.innerWidth < 620 ? 72 : 86;
+  const sidePadding = window.innerWidth < 430 ? 12 : 22;
+  const availableWidth = window.innerWidth - sidePadding * 2 - enemyWidth;
+
+  let xPositions = [
+    sidePadding,
+    sidePadding + availableWidth * 0.33,
+    sidePadding + availableWidth * 0.66,
+    sidePadding + availableWidth
+  ];
+
+  xPositions = xPositions.sort(() => Math.random() - 0.5);
 
   answers.forEach((ans,i)=>{
-    createEnemy(window.innerWidth * lanes[i], -80 - Math.random()*80, ans, ans === correctAnswer);
+    const x = Math.max(
+      sidePadding,
+      Math.min(window.innerWidth - enemyWidth - sidePadding, xPositions[i])
+    );
+
+    const y = -95 - (i * 95) - Math.random() * 25;
+
+    createEnemy(x, y, ans, ans === correctAnswer);
   });
 }
 
@@ -903,8 +936,6 @@ function clampPlayer(){
   playerX = Math.max(8, Math.min(window.innerWidth - 72, playerX));
 
   const topLimit = window.innerWidth < 620 ? 112 : 82;
-
-  /* Keep plane above the raised buttons */
   const bottomReserved = window.innerWidth < 620 ? 220 : 205;
   const bottomLimit = window.innerHeight - bottomReserved;
 
