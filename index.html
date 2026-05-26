@@ -360,12 +360,15 @@
     position:absolute;
     left:0;
     right:0;
-    bottom:10px;
-    z-index:30;
+
+    /* Raised above Android/Samsung browser bottom bar */
+    bottom:calc(90px + env(safe-area-inset-bottom));
+
+    z-index:80;
     display:flex;
     justify-content:space-between;
     align-items:end;
-    padding:0 12px;
+    padding:0 18px;
     pointer-events:none;
   }
 
@@ -391,7 +394,7 @@
     background:linear-gradient(#e0f2fe,#60a5fa);
     box-shadow:0 5px 0 #1d4ed8;
     position:relative;
-    z-index:40;
+    z-index:90;
   }
 
   .ctrl.blank{
@@ -417,7 +420,7 @@
     left:50%;
     top:50%;
     transform:translate(-50%,-50%);
-    z-index:50;
+    z-index:100;
     width:min(680px,92vw);
     background:#ffffffee;
     border:5px solid #1e3a8a;
@@ -487,8 +490,8 @@
     }
 
     #controls{
-      bottom:14px;
-      padding:0 8px;
+      bottom:calc(95px + env(safe-area-inset-bottom));
+      padding:0 14px;
     }
 
     .dpad{
@@ -538,9 +541,9 @@
     }
 
     #controls{
-      transform:scale(.9);
+      transform:scale(.86);
       transform-origin:bottom center;
-      bottom:2px;
+      bottom:calc(80px + env(safe-area-inset-bottom));
     }
   }
 </style>
@@ -570,9 +573,15 @@
       <div id="gameArea"></div>
 
       <div id="hud">
-        <div id="scoreBox" class="hud-card">Score: <span id="score">0</span>/12<br>Fact: <span id="factNo">1</span>/12</div>
+        <div id="scoreBox" class="hud-card">
+          Score: <span id="score">0</span>/12<br>
+          Fact: <span id="factNo">1</span>/12
+        </div>
         <div id="questionBox" class="hud-card">6 × 7 = ?</div>
-        <div id="livesBox" class="hud-card">Lives: <span id="lives">❤️❤️❤️</span><br>Streak: <span id="streak">0</span></div>
+        <div id="livesBox" class="hud-card">
+          Lives: <span id="lives">❤️❤️❤️</span><br>
+          Streak: <span id="streak">0</span>
+        </div>
       </div>
 
       <div id="player">
@@ -677,7 +686,7 @@ function startGame(){
   $("message").style.display = "none";
 
   playerX = window.innerWidth / 2 - 32;
-  playerY = window.innerHeight - 190;
+  playerY = window.innerHeight - 260;
   updatePlayer();
 
   shuffle(facts);
@@ -724,7 +733,7 @@ function holdButton(id, down, up){
   btn.onpointerdown = e => {
     e.preventDefault();
     e.stopPropagation();
-    btn.setPointerCapture(e.pointerId);
+    try { btn.setPointerCapture(e.pointerId); } catch(err) {}
     down();
   };
 
@@ -894,7 +903,10 @@ function clampPlayer(){
   playerX = Math.max(8, Math.min(window.innerWidth - 72, playerX));
 
   const topLimit = window.innerWidth < 620 ? 112 : 82;
-  const bottomLimit = window.innerHeight - 120;
+
+  /* Keep plane above the raised buttons */
+  const bottomReserved = window.innerWidth < 620 ? 220 : 205;
+  const bottomLimit = window.innerHeight - bottomReserved;
 
   playerY = Math.max(topLimit, Math.min(bottomLimit, playerY));
 }
