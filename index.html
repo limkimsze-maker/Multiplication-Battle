@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Multiply Flyer: Retro Sky Facts</title>
+<title>Multiply Flyer: Sky Commander</title>
 
 <style>
   :root{
@@ -62,7 +62,7 @@
   }
 
   .cover-card{
-    width:min(780px,96vw);
+    width:min(840px,96vw);
     background:linear-gradient(180deg,#ffffff,#fff7d6);
     border:5px solid #1e3a8a;
     border-radius:30px;
@@ -82,6 +82,21 @@
     font-size:clamp(1rem,3vw,1.35rem);
     font-weight:bold;
     margin:10px 0 18px;
+  }
+
+  .level-list{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin:14px 0;
+  }
+
+  .level-card{
+    background:#eff6ff;
+    border:3px solid #1d4ed8;
+    border-radius:18px;
+    padding:10px;
+    font-weight:bold;
   }
 
   .plane-big{
@@ -341,6 +356,17 @@
     z-index:6;
   }
 
+  .enemyBullet{
+    position:absolute;
+    width:14px;
+    height:22px;
+    background:#ff4d4d;
+    border:3px solid #7f1d1d;
+    border-radius:999px;
+    z-index:6;
+    box-shadow:0 0 10px #ff8080;
+  }
+
   .spark{
     position:absolute;
     width:22px;
@@ -418,7 +444,7 @@
     top:50%;
     transform:translate(-50%,-50%);
     z-index:100;
-    width:min(680px,92vw);
+    width:min(720px,92vw);
     background:#ffffffee;
     border:5px solid #1e3a8a;
     border-radius:28px;
@@ -437,6 +463,17 @@
   #message p{
     font-weight:bold;
     font-size:1.15rem;
+  }
+
+  .rank-badge{
+    display:inline-block;
+    margin:10px 0;
+    padding:10px 18px;
+    border-radius:999px;
+    background:linear-gradient(#fef08a,#facc15);
+    border:4px solid #a16207;
+    font-size:1.4rem;
+    font-weight:bold;
   }
 
   .credit{
@@ -467,6 +504,11 @@
   }
 
   @media(max-width:620px){
+    .level-list{
+      grid-template-columns:1fr;
+      gap:7px;
+    }
+
     #hud{
       grid-template-columns:1fr 1fr;
     }
@@ -563,11 +605,19 @@
   <section id="cover" class="screen active">
     <div class="cover-card">
       <h1>✈️ Multiply Flyer</h1>
-      <div class="subtitle">Retro Sky Facts — Singapore Primary 3 Multiplication Practice</div>
+      <div class="subtitle">Sky Commander — Multiplication Facts Mission</div>
       <div class="plane-big"></div>
+
+      <div class="level-list">
+        <div class="level-card">Level 1<br>×2, ×3, ×4, ×5<br>Promotion: Captain</div>
+        <div class="level-card">Level 2<br>×6, ×7, ×8, ×9, ×10<br>Promotion: Major</div>
+        <div class="level-card">Level 3<br>×2 to ×12<br>Promotion: General</div>
+      </div>
+
       <p><b>Mission:</b> Shoot the enemy plane carrying the correct multiplication answer.</p>
-      <p>Clear 12 multiplication facts. Wrong answers cost a life!</p>
-      <p><b>Mobile tip:</b> You can drag the plane with your finger or use the buttons.</p>
+      <p>Enemy planes may shoot back slowly. Dodge them and complete all 3 levels!</p>
+      <p><b>Mobile tip:</b> Drag the plane with your finger or use the buttons.</p>
+
       <div class="btn-row">
         <button onclick="startGame()">Start Mission</button>
         <button class="secondary" onclick="showHow()">How to Play</button>
@@ -582,12 +632,16 @@
 
       <div id="hud">
         <div id="scoreBox" class="hud-card">
-          Score: <span id="score">0</span>/12<br>
-          Fact: <span id="factNo">1</span>/12
+          Level: <span id="levelNow">1</span>/3<br>
+          Rank: <span id="rankNow">Cadet</span><br>
+          Score: <span id="score">0</span>/<span id="levelTotal">12</span>
         </div>
+
         <div id="questionBox" class="hud-card">6 × 7 = ?</div>
+
         <div id="livesBox" class="hud-card">
           Lives: <span id="lives">❤️❤️❤️</span><br>
+          Fact: <span id="factNo">1</span>/<span id="factTotal">12</span><br>
           Streak: <span id="streak">0</span>
         </div>
       </div>
@@ -623,25 +677,53 @@
 </div>
 
 <script>
-const TOTAL = 12;
-
-const facts = [
-  [6,6],[6,7],[6,8],[6,9],
-  [7,7],[7,8],[7,9],
-  [8,8],[8,9],
-  [9,9],[6,12],[7,12]
+const LEVELS = [
+  {
+    name: "Level 1",
+    tables: [2,3,4,5],
+    questions: 12,
+    promotion: "Captain",
+    enemySpeed: 1.05,
+    enemyBulletChance: 0.007,
+    maxEnemyBullets: 1
+  },
+  {
+    name: "Level 2",
+    tables: [6,7,8,9,10],
+    questions: 12,
+    promotion: "Major",
+    enemySpeed: 1.15,
+    enemyBulletChance: 0.009,
+    maxEnemyBullets: 2
+  },
+  {
+    name: "Level 3",
+    tables: [2,3,4,5,6,7,8,9,10,11,12],
+    questions: 15,
+    promotion: "General",
+    enemySpeed: 1.2,
+    enemyBulletChance: 0.01,
+    maxEnemyBullets: 2
+  }
 ];
 
 let gameArea, player;
 let playerX = 0;
 let playerY = 0;
+
+let levelIndex = 0;
+let facts = [];
+let current = 0;
 let score = 0;
+let totalScore = 0;
+let correctAnswer = 0;
+let currentFact = null;
+
 let lives = 3;
 let streak = 0;
-let current = 0;
-let correctAnswer = 0;
 let enemies = [];
 let bullets = [];
+let enemyBullets = [];
 let keys = {};
 let running = false;
 let enemySpeed = 1.15;
@@ -664,7 +746,8 @@ function showHow(){
     <p><b>Desktop:</b> Use ← → ↑ ↓ or WASD to move. Press Space to shoot.</p>
     <p><b>Mobile:</b> Drag the plane with your finger or use the direction buttons. Press 🔥 to shoot.</p>
     <p>Shoot only the plane with the correct multiplication answer.</p>
-    <p>Wrong answer = lose 1 life. Clear 12 facts to win.</p>
+    <p>Enemy shots are slow and bright red. Dodge them!</p>
+    <p>Complete Level 1 to become Captain, Level 2 to become Major, and Level 3 to become General.</p>
     <div class="btn-row">
       <button onclick="location.reload()">Back</button>
       <button class="success" onclick="startGame()">Start Mission</button>
@@ -678,15 +761,12 @@ function startGame(){
   gameArea = $("gameArea");
   player = $("player");
 
-  score = 0;
+  levelIndex = 0;
+  totalScore = 0;
   lives = 3;
   streak = 0;
-  current = 0;
-  enemies = [];
-  bullets = [];
   keys = {};
   running = true;
-  enemySpeed = 1.15;
   shootCooldown = false;
   draggingPlane = false;
 
@@ -697,14 +777,47 @@ function startGame(){
   playerY = window.innerHeight - 260;
   updatePlayer();
 
-  shuffle(facts);
   makeClouds();
-  nextFact();
   bindControls();
   bindDragMovement();
+  startLevel(0);
 
   if(animationId) cancelAnimationFrame(animationId);
   animationId = requestAnimationFrame(loop);
+}
+
+function startLevel(index){
+  levelIndex = index;
+  const level = LEVELS[levelIndex];
+
+  current = 0;
+  score = 0;
+  lives = 3;
+  streak = 0;
+  enemies = [];
+  bullets = [];
+  enemyBullets = [];
+  enemySpeed = level.enemySpeed;
+
+  facts = makeFacts(level.tables, level.questions);
+
+  $("message").style.display = "none";
+  clearEnemiesAndBullets();
+  nextFact();
+  updateHud();
+}
+
+function makeFacts(tables, count){
+  const pool = [];
+
+  tables.forEach(t=>{
+    for(let m = 2; m <= 12; m++){
+      pool.push([t,m]);
+    }
+  });
+
+  shuffle(pool);
+  return pool.slice(0,count);
 }
 
 function bindControls(){
@@ -788,26 +901,27 @@ function bindDragMovement(){
 }
 
 function movePlaneToPointer(e){
-  const x = e.clientX - 32;
-  const y = e.clientY - 38;
-
-  playerX = x;
-  playerY = y;
+  playerX = e.clientX - 32;
+  playerY = e.clientY - 38;
   clampPlayer();
   updatePlayer();
 }
 
 function nextFact(){
-  if(current >= TOTAL){
-    winGame();
+  const level = LEVELS[levelIndex];
+
+  if(current >= facts.length){
+    levelCleared();
     return;
   }
 
-  const [a,b] = facts[current % facts.length];
-  correctAnswer = a * b;
+  currentFact = facts[current];
+  correctAnswer = currentFact[0] * currentFact[1];
 
-  $("questionBox").textContent = `${a} × ${b} = ?`;
+  $("questionBox").textContent = `${currentFact[0]} × ${currentFact[1]} = ?`;
   $("factNo").textContent = current + 1;
+  $("factTotal").textContent = facts.length;
+  $("levelTotal").textContent = facts.length;
 
   clearEnemiesAndBullets();
   spawnAnswerWave();
@@ -817,12 +931,6 @@ function nextFact(){
 function spawnAnswerWave(){
   const answers = generateAnswers(correctAnswer);
 
-  /*
-    Mobile-friendly placement:
-    - fixed safe columns
-    - no horizontal overlap
-    - vertical stagger so enemies arrive one by one
-  */
   const enemyWidth = window.innerWidth < 620 ? 72 : 86;
   const sidePadding = window.innerWidth < 430 ? 12 : 22;
   const availableWidth = window.innerWidth - sidePadding * 2 - enemyWidth;
@@ -850,7 +958,7 @@ function spawnAnswerWave(){
 
 function generateAnswers(correct){
   const set = new Set([correct]);
-  const offsets = [-18,-16,-14,-12,-9,-8,-7,-6,-5,-4,-3,3,4,5,6,7,8,9,12,14,16,18];
+  const offsets = [-24,-20,-18,-16,-14,-12,-10,-9,-8,-7,-6,-5,-4,-3,3,4,5,6,7,8,9,10,12,14,16,18,20,24];
 
   while(set.size < 4){
     const offset = offsets[Math.floor(Math.random()*offsets.length)];
@@ -884,7 +992,7 @@ function createEnemy(x,y,answer,isCorrect){
     y,
     answer,
     correct:isCorrect,
-    speed:enemySpeed + Math.random()*0.35
+    speed:enemySpeed + Math.random()*0.28
   });
 }
 
@@ -892,7 +1000,7 @@ function shoot(){
   if(!running || shootCooldown) return;
 
   shootCooldown = true;
-  setTimeout(()=>shootCooldown=false,160);
+  setTimeout(()=>shootCooldown=false,150);
 
   const bullet = document.createElement("div");
   bullet.className = "bullet";
@@ -914,8 +1022,11 @@ function loop(){
 
   movePlayer();
   moveBullets();
+  moveEnemyBullets();
   moveEnemies();
+  enemyShootBack();
   checkCollisions();
+  checkEnemyBulletHits();
 
   animationId = requestAnimationFrame(loop);
 }
@@ -956,6 +1067,54 @@ function moveBullets(){
 
   bullets = bullets.filter(b=>{
     if(b.y < -40){
+      b.el.remove();
+      return false;
+    }
+    return true;
+  });
+}
+
+function enemyShootBack(){
+  if(!running) return;
+
+  const level = LEVELS[levelIndex];
+
+  if(enemyBullets.length >= level.maxEnemyBullets) return;
+  if(Math.random() > level.enemyBulletChance) return;
+  if(enemies.length === 0) return;
+
+  const visibleEnemies = enemies.filter(e => e.y > 20 && e.y < window.innerHeight * 0.55);
+  if(visibleEnemies.length === 0) return;
+
+  const shooter = visibleEnemies[Math.floor(Math.random() * visibleEnemies.length)];
+
+  const bullet = document.createElement("div");
+  bullet.className = "enemyBullet";
+
+  const x = shooter.x + 34;
+  const y = shooter.y + 58;
+
+  bullet.style.left = x + "px";
+  bullet.style.top = y + "px";
+
+  gameArea.appendChild(bullet);
+
+  enemyBullets.push({
+    el: bullet,
+    x,
+    y,
+    speed: 2.0 + Math.random() * 0.35
+  });
+}
+
+function moveEnemyBullets(){
+  enemyBullets.forEach(b=>{
+    b.y += b.speed;
+    b.el.style.top = b.y + "px";
+  });
+
+  enemyBullets = enemyBullets.filter(b=>{
+    if(b.y > window.innerHeight + 40){
       b.el.remove();
       return false;
     }
@@ -1008,12 +1167,13 @@ function checkCollisions(){
 
         if(e.correct){
           score++;
+          totalScore++;
           streak++;
           current++;
           playCorrect();
-          enemySpeed = Math.min(2.2, enemySpeed + 0.05);
+          enemySpeed = Math.min(enemySpeed + 0.04, 2.25);
           updateHud();
-          setTimeout(nextFact,450);
+          setTimeout(nextFact,430);
         }else{
           streak = 0;
           playWrong();
@@ -1022,6 +1182,29 @@ function checkCollisions(){
 
         return;
       }
+    }
+  }
+}
+
+function checkEnemyBulletHits(){
+  if(!running || !player) return;
+
+  const pr = player.getBoundingClientRect();
+
+  for(let i = enemyBullets.length - 1; i >= 0; i--){
+    const b = enemyBullets[i];
+    const br = b.el.getBoundingClientRect();
+
+    if(rectHit(pr, br)){
+      makeSpark(playerX + 30, playerY + 30);
+
+      b.el.remove();
+      enemyBullets.splice(i,1);
+
+      playWrong();
+      loseLife("You were hit by an enemy shot!");
+
+      return;
     }
   }
 }
@@ -1038,44 +1221,58 @@ function loseLife(text){
   if(lives <= 0){
     endGame();
   }else{
-    showFloatingMessage(text + " Try the next wave!", 750);
+    showFloatingMessage(text + " Try again!", 800);
     clearEnemiesAndBullets();
-    setTimeout(spawnAnswerWave,650);
+    setTimeout(spawnAnswerWave,700);
   }
 }
 
-function updateHud(){
-  $("score").textContent = score;
-  $("lives").textContent = "❤️".repeat(lives) + "♡".repeat(3-lives);
-  $("streak").textContent = streak;
-}
-
-function clearEnemiesAndBullets(){
-  enemies.forEach(e=>e.el.remove());
-  bullets.forEach(b=>b.el.remove());
-  enemies = [];
-  bullets = [];
-}
-
-function winGame(){
+function levelCleared(){
   running = false;
   clearEnemiesAndBullets();
-  playWin();
-  burstConfetti(80);
 
-  $("message").innerHTML = `
-    <h2>Mission Complete! 🎉</h2>
-    <p>You cleared all 12 multiplication facts.</p>
-    <p>Final Score: <b>${score}/12</b></p>
-    <p>Expect a silly victory dance from the plane!</p>
-    <div class="btn-row">
-      <button class="success" onclick="startGame()">Play Again</button>
-      <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
-    </div>
-  `;
+  const level = LEVELS[levelIndex];
+  const rank = level.promotion;
+
+  playWin();
+  burstConfetti(60);
+
+  if(levelIndex < LEVELS.length - 1){
+    $("message").innerHTML = `
+      <h2>Level Cleared! 🎉</h2>
+      <div class="rank-badge">Promoted to ${rank}</div>
+      <p>You completed ${level.name}.</p>
+      <p>Level Score: <b>${score}/${facts.length}</b></p>
+      <p>Next mission will unlock more multiplication facts.</p>
+      <div class="btn-row">
+        <button class="success" onclick="continueToNextLevel()">Continue to Level ${levelIndex + 2}</button>
+        <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
+      </div>
+    `;
+  } else {
+    $("message").innerHTML = `
+      <h2>Final Mission Complete! 🎉</h2>
+      <div class="rank-badge">Promoted to General</div>
+      <p>You completed all 3 levels.</p>
+      <p>Total Score: <b>${totalScore}/${LEVELS.reduce((sum,l)=>sum+l.questions,0)}</b></p>
+      <p>Outstanding flying, General! Expect a silly victory dance from the plane!</p>
+      <div class="btn-row">
+        <button class="success" onclick="startGame()">Play Again</button>
+        <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
+      </div>
+    `;
+    sillyPlaneDance();
+  }
 
   $("message").style.display = "block";
-  sillyPlaneDance();
+}
+
+function continueToNextLevel(){
+  running = true;
+  startLevel(levelIndex + 1);
+
+  if(animationId) cancelAnimationFrame(animationId);
+  animationId = requestAnimationFrame(loop);
 }
 
 function endGame(){
@@ -1084,15 +1281,46 @@ function endGame(){
 
   $("message").innerHTML = `
     <h2>Mission Paused! ✈️</h2>
-    <p>You scored <b>${score}/12</b>.</p>
-    <p>Practise again to become a Times Table Ace!</p>
+    <p>You reached Level ${levelIndex + 1}.</p>
+    <p>Level Score: <b>${score}/${facts.length}</b></p>
+    <p>Total Score: <b>${totalScore}</b></p>
+    <p>Practise again to earn your next promotion!</p>
     <div class="btn-row">
-      <button class="success" onclick="startGame()">Try Again</button>
+      <button class="success" onclick="startGame()">Restart Mission</button>
       <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
     </div>
   `;
 
   $("message").style.display = "block";
+}
+
+function updateHud(){
+  const level = LEVELS[levelIndex];
+
+  $("levelNow").textContent = levelIndex + 1;
+  $("rankNow").textContent = getCurrentRank();
+  $("score").textContent = score;
+  $("levelTotal").textContent = level.questions;
+  $("factTotal").textContent = level.questions;
+  $("lives").textContent = "❤️".repeat(lives) + "♡".repeat(3-lives);
+  $("streak").textContent = streak;
+}
+
+function getCurrentRank(){
+  if(levelIndex === 0) return "Cadet";
+  if(levelIndex === 1) return "Captain";
+  if(levelIndex === 2) return "Major";
+  return "General";
+}
+
+function clearEnemiesAndBullets(){
+  enemies.forEach(e=>e.el.remove());
+  bullets.forEach(b=>b.el.remove());
+  enemyBullets.forEach(b=>b.el.remove());
+
+  enemies = [];
+  bullets = [];
+  enemyBullets = [];
 }
 
 function showFloatingMessage(text,ms){
