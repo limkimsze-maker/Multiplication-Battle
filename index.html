@@ -6,9 +6,7 @@
 <title>Multiply Flyer: Space Commander</title>
 
 <style>
-  :root{
-    --ink:#172033;
-  }
+  :root{ --ink:#172033; }
 
   *{
     box-sizing:border-box;
@@ -61,9 +59,7 @@
     z-index:10;
   }
 
-  .screen.active{
-    display:flex;
-  }
+  .screen.active{ display:flex; }
 
   #cover{
     align-items:center;
@@ -302,15 +298,8 @@
     box-shadow:0 0 8px #67e8f9;
   }
 
-  #player .wing.left{
-    left:0;
-    transform:rotate(-12deg);
-  }
-
-  #player .wing.right{
-    right:0;
-    transform:rotate(12deg);
-  }
+  #player .wing.left{ left:0; transform:rotate(-12deg); }
+  #player .wing.right{ right:0; transform:rotate(12deg); }
 
   #player .cockpit{
     position:absolute;
@@ -888,7 +877,7 @@
       </div>
 
       <p><b>Mission:</b> Shoot the alien spaceship carrying the correct multiplication answer.</p>
-      <p>At the end of each stage, your spaceship launches a bomb to destroy the multiplication facts in space!</p>
+      <p>Aliens fly in two clear rows so you have space to aim and shoot.</p>
       <p><b>Mobile tip:</b> Drag the spaceship only by touching near it. This prevents accidental teleporting.</p>
 
       <div class="btn-row">
@@ -962,7 +951,7 @@ const LEVELS = [
     currentRank:"Cadet",
     promotion:"Captain",
     nextWeapon:"3-Shot Spray Gun unlocked!",
-    enemySpeed:0.85,
+    enemySpeed:0.75,
     maxEnemyBullets:1
   },
   {
@@ -972,7 +961,7 @@ const LEVELS = [
     currentRank:"Captain",
     promotion:"Major",
     nextWeapon:"Laser Gun unlocked!",
-    enemySpeed:0.95,
+    enemySpeed:0.85,
     maxEnemyBullets:2
   },
   {
@@ -982,7 +971,7 @@ const LEVELS = [
     currentRank:"Major",
     promotion:"General",
     nextWeapon:"Final rank achieved!",
-    enemySpeed:1.05,
+    enemySpeed:0.95,
     maxEnemyBullets:2
   }
 ];
@@ -990,7 +979,6 @@ const LEVELS = [
 let gameArea, player;
 let playerX = 0;
 let playerY = 0;
-
 let levelIndex = 0;
 let facts = [];
 let current = 0;
@@ -998,7 +986,6 @@ let score = 0;
 let totalScore = 0;
 let correctAnswer = 0;
 let currentFact = null;
-
 let lives = 3;
 let streak = 0;
 let enemies = [];
@@ -1027,7 +1014,7 @@ function showHow(){
     <p><b>Mobile:</b> Touch near the spaceship first, then drag it. Press 🔥 to shoot.</p>
     <p>The spaceship will not jump if you accidentally touch another part of the screen.</p>
     <p>Shoot only the alien spaceship with the correct multiplication answer.</p>
-    <p>Enemy spaceships fly in a row. Their hit boxes are generous, so aim near the spaceship.</p>
+    <p>Alien spaceships fly in two well-spaced rows so you have room to aim.</p>
     <p>After each stage, press the red bomb button to launch a bomb from your spaceship and destroy the multiplication facts.</p>
     <div class="btn-row">
       <button onclick="location.reload()">Back</button>
@@ -1164,17 +1151,11 @@ function bindDragMovement(){
     if(!running) return;
     if(e.target.closest("button") || e.target.closest("a")) return;
 
-    /*
-      Prevent accidental teleport:
-      Only start dragging if the touch begins near the spaceship.
-    */
     const shipCenterX = playerX + 32;
     const shipCenterY = playerY + 38;
-
     const dx = e.clientX - shipCenterX;
     const dy = e.clientY - shipCenterY;
     const distance = Math.sqrt(dx * dx + dy * dy);
-
     const touchRadius = 90;
 
     if(distance > touchRadius){
@@ -1183,9 +1164,7 @@ function bindDragMovement(){
     }
 
     draggingPlane = true;
-
     try { game.setPointerCapture(e.pointerId); } catch(err) {}
-
     movePlaneToPointer(e);
   };
 
@@ -1194,23 +1173,14 @@ function bindDragMovement(){
     movePlaneToPointer(e);
   };
 
-  game.onpointerup = () => {
-    draggingPlane = false;
-  };
-
-  game.onpointercancel = () => {
-    draggingPlane = false;
-  };
-
-  game.onlostpointercapture = () => {
-    draggingPlane = false;
-  };
+  game.onpointerup = () => { draggingPlane = false; };
+  game.onpointercancel = () => { draggingPlane = false; };
+  game.onlostpointercapture = () => { draggingPlane = false; };
 }
 
 function movePlaneToPointer(e){
   playerX = e.clientX - 32;
   playerY = e.clientY - 38;
-
   clampPlayer();
   updatePlayer();
 }
@@ -1239,24 +1209,44 @@ function nextFact(){
 function spawnAnswerWave(){
   const answers = generateAnswers(correctAnswer);
 
+  /*
+    Clear 2-row formation:
+    - 2 spaceships on the lower row
+    - 2 spaceships on the upper row
+    - Rows are far apart so pupils can aim properly
+    - No overlap
+  */
+
   const isMobile = window.innerWidth < 620;
   const enemyWidth = isMobile ? 72 : 78;
-  const sidePadding = isMobile ? 12 : 28;
+  const sidePadding = isMobile ? 22 : 48;
+  const rowGap = isMobile ? 135 : 155;
 
-  const availableWidth = window.innerWidth - sidePadding * 2 - enemyWidth;
-  const gap = availableWidth / 3;
+  const leftX = sidePadding;
+  const rightX = window.innerWidth - sidePadding - enemyWidth;
+  const middleLeftX = window.innerWidth * 0.30 - enemyWidth / 2;
+  const middleRightX = window.innerWidth * 0.70 - enemyWidth / 2;
 
-  const xPositions = [
-    sidePadding,
-    sidePadding + gap,
-    sidePadding + gap * 2,
-    sidePadding + gap * 3
+  const lowerRowY = -95;
+  const upperRowY = lowerRowY - rowGap;
+
+  const positions = [
+    { x: leftX, y: lowerRowY },
+    { x: rightX, y: lowerRowY },
+    { x: middleLeftX, y: upperRowY },
+    { x: middleRightX, y: upperRowY }
   ];
 
-  const rowY = -85;
-
+  // Keep positions fixed for readability, but shuffle answer allocation.
   answers.forEach((ans, i) => {
-    createEnemy(xPositions[i], rowY, ans, ans === correctAnswer);
+    const pos = positions[i];
+
+    const safeX = Math.max(
+      sidePadding,
+      Math.min(window.innerWidth - sidePadding - enemyWidth, pos.x)
+    );
+
+    createEnemy(safeX, pos.y, ans, ans === correctAnswer);
   });
 }
 
@@ -1296,7 +1286,7 @@ function createEnemy(x,y,answer,isCorrect){
     y,
     answer,
     correct:isCorrect,
-    speed:enemySpeed + Math.random()*0.12,
+    speed:enemySpeed + Math.random()*0.10,
     hasShot:false
   });
 }
@@ -1688,9 +1678,7 @@ function blastFacts(){
   missile.className = "bomb-missile";
   scene.appendChild(missile);
 
-  setTimeout(()=>{
-    missile.classList.add("launch");
-  }, 30);
+  setTimeout(()=>{ missile.classList.add("launch"); }, 30);
 
   setTimeout(()=>{
     const flash = document.createElement("div");
@@ -1717,9 +1705,7 @@ function blastFacts(){
     missile.remove();
   }, 1450);
 
-  setTimeout(()=>{
-    showPromotionScreen();
-  }, 2350);
+  setTimeout(()=>{ showPromotionScreen(); }, 2350);
 }
 
 function showPromotionScreen(){
@@ -1785,149 +1771,4 @@ function endGame(){
     <p>Total Score: <b>${totalScore}</b></p>
     <p>Practise again to earn your next promotion!</p>
     <div class="btn-row">
-      <button class="success" onclick="startGame()">Restart Mission</button>
-      <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
-    </div>
-  `;
-
-  $("message").style.display = "block";
-}
-
-function updateHud(){
-  const level = LEVELS[levelIndex];
-
-  $("levelNow").textContent = levelIndex + 1;
-  $("rankNow").textContent = level.currentRank;
-  $("score").textContent = score;
-  $("levelTotal").textContent = level.questions;
-  $("factTotal").textContent = level.questions;
-  $("lives").textContent = "❤️".repeat(lives) + "♡".repeat(3-lives);
-  $("streak").textContent = streak;
-}
-
-function clearEnemiesAndBullets(){
-  enemies.forEach(e=>e.el.remove());
-  bullets.forEach(b=>b.el.remove());
-  enemyBullets.forEach(b=>b.el.remove());
-
-  enemies = [];
-  bullets = [];
-  enemyBullets = [];
-}
-
-function showFloatingMessage(text,ms){
-  const msg = $("message");
-  msg.innerHTML = `<h2>Careful!</h2><p>${text}</p>`;
-  msg.style.display = "block";
-
-  setTimeout(()=>{
-    if(running) msg.style.display = "none";
-  }, ms);
-}
-
-function makeSpark(x,y){
-  const s = document.createElement("div");
-  s.className = "spark";
-  s.style.left = x + "px";
-  s.style.top = y + "px";
-  gameArea.appendChild(s);
-  setTimeout(()=>s.remove(),400);
-}
-
-function makeClouds(){
-  for(let i=0;i<10;i++){
-    const c = document.createElement("div");
-    c.className = "cloud";
-    c.style.left = Math.random()*100 + "vw";
-    c.style.top = -Math.random()*100 + "px";
-    c.style.opacity = 0.18 + Math.random()*0.18;
-    c.style.animationDuration = 14 + Math.random()*8 + "s";
-    c.style.animationDelay = -Math.random()*8 + "s";
-    gameArea.appendChild(c);
-  }
-}
-
-function sillyPlaneDance(){
-  let t = 0;
-
-  const dance = setInterval(()=>{
-    t++;
-    player.style.transform = `translateX(-50%) rotate(${Math.sin(t)*18}deg) scale(${1 + Math.sin(t*1.5)*0.08})`;
-    player.style.top = `${playerY + Math.sin(t)*18}px`;
-
-    if(t > 28){
-      clearInterval(dance);
-      player.style.transform = "translateX(-50%)";
-      updatePlayer();
-    }
-  },90);
-}
-
-function burstConfetti(count){
-  const colors = ["#ef4444","#facc15","#22c55e","#3b82f6","#a855f7","#fb923c"];
-
-  for(let i=0;i<count;i++){
-    const p = document.createElement("div");
-    p.className = "confetti";
-    p.style.left = Math.random()*100 + "vw";
-    p.style.background = colors[Math.floor(Math.random()*colors.length)];
-    p.style.animationDuration = 1.5 + Math.random()*1.5 + "s";
-    document.body.appendChild(p);
-    setTimeout(()=>p.remove(),3000);
-  }
-}
-
-function getAudio(){
-  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  return audioCtx;
-}
-
-function beep(freq,dur,type="sine",gainVal=.06){
-  try{
-    const ctx = getAudio();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-
-    o.type = type;
-    o.frequency.value = freq;
-    g.gain.value = gainVal;
-
-    o.connect(g);
-    g.connect(ctx.destination);
-
-    o.start();
-    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+dur);
-    o.stop(ctx.currentTime+dur);
-  }catch(e){}
-}
-
-function playShoot(){ beep(520,.06,"square",.035); }
-
-function playCorrect(){
-  beep(660,.08);
-  setTimeout(()=>beep(880,.1),90);
-}
-
-function playWrong(){
-  beep(180,.13,"sawtooth",.045);
-  setTimeout(()=>beep(130,.13,"sawtooth",.045),110);
-}
-
-function playPromotionSound(){
-  [523,659,784,1046,1318].forEach((n,i)=>setTimeout(()=>beep(n,.12),i*110));
-}
-
-function shuffle(arr){
-  for(let i=arr.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [arr[i],arr[j]] = [arr[j],arr[i]];
-  }
-}
-
-window.addEventListener("resize",()=>{
-  clampPlayer();
-  updatePlayer();
-});
-</script>
-</body>
-</html>
+      <button class="
