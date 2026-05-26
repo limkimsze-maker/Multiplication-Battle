@@ -409,8 +409,8 @@
   }
 
   .sprayBullet{
-    width:9px;
-    height:22px;
+    width:11px;
+    height:24px;
     background:#bbf7d0;
     border:2px solid #15803d;
     box-shadow:0 0 10px #22c55e;
@@ -583,17 +583,6 @@
     font-size:1.1rem;
   }
 
-  .rank-badge{
-    display:inline-block;
-    margin:10px 0;
-    padding:10px 18px;
-    border-radius:999px;
-    background:linear-gradient(#fef08a,#facc15);
-    border:4px solid #a16207;
-    font-size:1.4rem;
-    font-weight:bold;
-  }
-
   .credit{
     position:absolute;
     right:10px;
@@ -732,7 +721,7 @@
 
       <div class="level-list">
         <div class="level-card">Level 1<br>×2, ×3, ×4, ×5<br>Promotion: Captain<br>Weapon: Single Shot</div>
-        <div class="level-card">Level 2<br>×6, ×7, ×8, ×9, ×10<br>Promotion: Major<br>Weapon: Spray Gun</div>
+        <div class="level-card">Level 2<br>×6, ×7, ×8, ×9, ×10<br>Promotion: Major<br>Weapon: 3-Shot Spray</div>
         <div class="level-card">Level 3<br>×2 to ×12<br>Promotion: General<br>Weapon: Laser Gun</div>
       </div>
 
@@ -819,7 +808,7 @@ const LEVELS = [
     currentRank: "Cadet",
     promotion: "Captain",
     weapon: "Single Shot",
-    nextWeapon: "Spray Gun unlocked!",
+    nextWeapon: "3-Shot Spray Gun unlocked!",
     enemySpeed: 1.05,
     maxEnemyBullets: 1
   },
@@ -829,7 +818,7 @@ const LEVELS = [
     questions: 12,
     currentRank: "Captain",
     promotion: "Major",
-    weapon: "Spray Gun",
+    weapon: "3-Shot Spray Gun",
     nextWeapon: "Laser Gun unlocked!",
     enemySpeed: 1.15,
     maxEnemyBullets: 2
@@ -1080,26 +1069,36 @@ function nextFact(){
 function spawnAnswerWave(){
   const answers = generateAnswers(correctAnswer);
 
-  const enemyWidth = window.innerWidth < 620 ? 76 : 88;
-  const sidePadding = window.innerWidth < 430 ? 14 : 26;
-  const usableWidth = window.innerWidth - sidePadding * 2 - enemyWidth;
+  /*
+    Strong no-overlap placement:
+    - 4 fixed safe columns
+    - large vertical gaps
+    - enemies enter one after another
+    - works better on mobile screens
+  */
+
+  const isMobile = window.innerWidth < 620;
+  const enemyWidth = isMobile ? 78 : 88;
+  const sidePadding = isMobile ? 18 : 34;
+
+  const minX = sidePadding;
+  const maxX = window.innerWidth - enemyWidth - sidePadding;
+  const usableWidth = Math.max(1, maxX - minX);
 
   let xPositions = [
-    sidePadding,
-    sidePadding + usableWidth * 0.33,
-    sidePadding + usableWidth * 0.66,
-    sidePadding + usableWidth
+    minX,
+    minX + usableWidth * 0.33,
+    minX + usableWidth * 0.66,
+    maxX
   ];
 
   xPositions = xPositions.sort(() => Math.random() - 0.5);
 
   answers.forEach((ans, i) => {
-    const x = Math.max(
-      sidePadding,
-      Math.min(window.innerWidth - enemyWidth - sidePadding, xPositions[i])
-    );
+    const x = xPositions[i];
 
-    const y = -110 - (i * 120) - Math.random() * 25;
+    // Bigger vertical gap prevents visual overlap.
+    const y = -120 - (i * 150);
 
     createEnemy(x, y, ans, ans === correctAnswer);
   });
@@ -1159,7 +1158,7 @@ function shoot(){
 
   if(weaponLevel === 2){
     shootCooldown = true;
-    setTimeout(()=>shootCooldown=false,190);
+    setTimeout(()=>shootCooldown=false,330);
     fireSprayGun();
   }
 
@@ -1177,9 +1176,17 @@ function fireSingleBullet(){
 }
 
 function fireSprayGun(){
-  createPlayerBullet(playerX + 27, playerY - 18, 0, "bullet sprayBullet");
-  createPlayerBullet(playerX + 15, playerY - 12, -1.6, "bullet sprayBullet");
-  createPlayerBullet(playerX + 39, playerY - 12, 1.6, "bullet sprayBullet");
+  const shotX = playerX + 27;
+
+  createPlayerBullet(shotX, playerY - 18, 0, "bullet sprayBullet");
+
+  setTimeout(() => {
+    if(running) createPlayerBullet(playerX + 27, playerY - 18, 0, "bullet sprayBullet");
+  }, 90);
+
+  setTimeout(() => {
+    if(running) createPlayerBullet(playerX + 27, playerY - 18, 0, "bullet sprayBullet");
+  }, 180);
 }
 
 function createPlayerBullet(x, y, vx, className){
@@ -1286,7 +1293,6 @@ function enemyShootBack(){
 
   if(readyShooters.length === 0) return;
 
-  // Easy mode: only some ready enemies shoot.
   if(Math.random() > 0.055) return;
 
   const shooter = readyShooters[Math.floor(Math.random() * readyShooters.length)];
