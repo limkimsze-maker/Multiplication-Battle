@@ -10,7 +10,6 @@
     --sky1:#8fd8ff;
     --sky2:#dff6ff;
     --ink:#172033;
-    --panel:#ffffffee;
     --blue:#2563eb;
     --green:#22c55e;
     --red:#ef4444;
@@ -33,6 +32,7 @@
     font-family:"Comic Sans MS","Comic Neue","Trebuchet MS",sans-serif;
     background:linear-gradient(#8fd8ff,#dff6ff);
     color:var(--ink);
+    touch-action:none;
   }
 
   #app{
@@ -150,6 +150,11 @@
     box-shadow:0 2px 0 #a16207;
   }
 
+  button:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+  }
+
   .secondary{
     background:linear-gradient(#dbeafe,#60a5fa);
     box-shadow:0 6px 0 #1d4ed8;
@@ -255,7 +260,7 @@
     width:64px;
     height:76px;
     left:50%;
-    bottom:80px;
+    top:70%;
     transform:translateX(-50%);
     z-index:3;
   }
@@ -388,6 +393,14 @@
     pointer-events:auto;
   }
 
+  .dpad{
+    display:grid;
+    grid-template-columns:56px 56px 56px;
+    grid-template-rows:52px 52px;
+    gap:6px;
+    pointer-events:auto;
+  }
+
   .ctrl{
     width:64px;
     height:58px;
@@ -398,8 +411,26 @@
     box-shadow:0 5px 0 #1d4ed8;
   }
 
+  .ctrl.small{
+    width:56px;
+    height:52px;
+    border-radius:16px;
+    font-size:1.35rem;
+  }
+
+  .ctrl.blank{
+    opacity:0;
+    pointer-events:none;
+  }
+
+  .ctrl.centre{
+    background:linear-gradient(#dbeafe,#93c5fd);
+  }
+
   .shoot{
     width:88px;
+    height:70px;
+    border-radius:22px;
     background:linear-gradient(#fecaca,#fb7185);
     box-shadow:0 5px 0 #be123c;
   }
@@ -444,6 +475,20 @@
     border-radius:999px;
   }
 
+  .confetti{
+    position:fixed;
+    top:-20px;
+    width:12px;
+    height:18px;
+    border-radius:4px;
+    z-index:100;
+    animation:fall linear forwards;
+  }
+
+  @keyframes fall{
+    to{transform:translateY(110vh) rotate(720deg);opacity:.4;}
+  }
+
   @media(max-width:620px){
     #hud{
       grid-template-columns:1fr 1fr;
@@ -464,13 +509,61 @@
       height:70px;
     }
 
-    .ctrl{
-      width:58px;
-      height:54px;
+    #controls{
+      bottom:10px;
+      padding:0 8px;
+    }
+
+    .dpad{
+      grid-template-columns:52px 52px 52px;
+      grid-template-rows:48px 48px;
+      gap:5px;
+    }
+
+    .ctrl.small{
+      width:52px;
+      height:48px;
+      font-size:1.2rem;
     }
 
     .shoot{
-      width:78px;
+      width:76px;
+      height:64px;
+      font-size:1.55rem;
+    }
+
+    .credit{
+      display:none;
+    }
+  }
+
+  @media(max-height:560px){
+    .cover-card{
+      padding:14px;
+    }
+
+    .plane-big{
+      width:100px;
+      height:80px;
+      margin:4px auto;
+    }
+
+    .subtitle{
+      margin:6px 0;
+    }
+
+    .cover-card p{
+      margin:6px 0;
+    }
+
+    button,a.button{
+      padding:10px 14px;
+    }
+
+    #controls{
+      transform:scale(.88);
+      transform-origin:bottom center;
+      bottom:2px;
     }
   }
 </style>
@@ -512,10 +605,16 @@
       </div>
 
       <div id="controls">
-        <div class="control-group">
-          <button class="ctrl" id="leftBtn">◀</button>
-          <button class="ctrl" id="rightBtn">▶</button>
+        <div class="dpad">
+          <button class="ctrl small blank" disabled></button>
+          <button class="ctrl small" id="upBtn">▲</button>
+          <button class="ctrl small blank" disabled></button>
+
+          <button class="ctrl small" id="leftBtn">◀</button>
+          <button class="ctrl small centre" id="downBtn">▼</button>
+          <button class="ctrl small" id="rightBtn">▶</button>
         </div>
+
         <div class="control-group">
           <button class="ctrl shoot" id="shootBtn">🔥</button>
         </div>
@@ -530,6 +629,7 @@
 
 <script>
 const TOTAL = 12;
+
 const facts = [
   [6,6],[6,7],[6,8],[6,9],
   [7,7],[7,8],[7,9],
@@ -539,6 +639,7 @@ const facts = [
 
 let gameArea, player;
 let playerX = 0;
+let playerY = 0;
 let score = 0;
 let lives = 3;
 let streak = 0;
@@ -548,7 +649,6 @@ let enemies = [];
 let bullets = [];
 let keys = {};
 let running = false;
-let lastEnemySpawn = 0;
 let enemySpeed = 1.15;
 let bulletSpeed = 8;
 let animationId = null;
@@ -565,8 +665,8 @@ function showScreen(id){
 function showHow(){
   $("cover").querySelector(".cover-card").innerHTML = `
     <h1>How to Play</h1>
-    <p><b>Desktop:</b> Use ← → arrow keys to move. Press Space to shoot.</p>
-    <p><b>Mobile:</b> Use the ◀ ▶ buttons and 🔥 shoot button.</p>
+    <p><b>Desktop:</b> Use ← → ↑ ↓ or WASD to move. Press Space to shoot.</p>
+    <p><b>Mobile:</b> Use the direction buttons and 🔥 shoot button.</p>
     <p>Shoot only the plane with the correct multiplication answer.</p>
     <p>Wrong answer = lose 1 life. Clear 12 facts to win.</p>
     <div class="btn-row">
@@ -596,6 +696,7 @@ function startGame(){
   $("message").style.display = "none";
 
   playerX = window.innerWidth / 2 - 32;
+  playerY = window.innerHeight - 170;
   updatePlayer();
 
   shuffle(facts);
@@ -610,16 +711,21 @@ function startGame(){
 function bindControls(){
   document.onkeydown = e => {
     keys[e.key] = true;
+
     if(e.code === "Space"){
       e.preventDefault();
       shoot();
     }
   };
 
-  document.onkeyup = e => keys[e.key] = false;
+  document.onkeyup = e => {
+    keys[e.key] = false;
+  };
 
-  holdButton("leftBtn", () => keys["ArrowLeft"] = true, () => keys["ArrowLeft"] = false);
+  holdButton("leftBtn",  () => keys["ArrowLeft"] = true,  () => keys["ArrowLeft"] = false);
   holdButton("rightBtn", () => keys["ArrowRight"] = true, () => keys["ArrowRight"] = false);
+  holdButton("upBtn",    () => keys["ArrowUp"] = true,    () => keys["ArrowUp"] = false);
+  holdButton("downBtn",  () => keys["ArrowDown"] = true,  () => keys["ArrowDown"] = false);
 
   const shootBtn = $("shootBtn");
   shootBtn.ontouchstart = e => { e.preventDefault(); shoot(); };
@@ -628,9 +734,11 @@ function bindControls(){
 
 function holdButton(id, down, up){
   const btn = $(id);
+
   btn.ontouchstart = e => { e.preventDefault(); down(); };
   btn.ontouchend = e => { e.preventDefault(); up(); };
   btn.ontouchcancel = e => { e.preventDefault(); up(); };
+
   btn.onmousedown = e => { e.preventDefault(); down(); };
   btn.onmouseup = e => { e.preventDefault(); up(); };
   btn.onmouseleave = e => { e.preventDefault(); up(); };
@@ -663,11 +771,14 @@ function spawnAnswerWave(){
 
 function generateAnswers(correct){
   const set = new Set([correct]);
+  const offsets = [-18,-16,-14,-12,-9,-8,-7,-6,-5,-4,-3,3,4,5,6,7,8,9,12,14,16,18];
+
   while(set.size < 4){
-    const offset = [-12,-9,-8,-7,-6,-5,-4,-3,3,4,5,6,7,8,9,12][Math.floor(Math.random()*16)];
-    let value = correct + offset;
+    const offset = offsets[Math.floor(Math.random()*offsets.length)];
+    const value = correct + offset;
     if(value > 0) set.add(value);
   }
+
   return Array.from(set).sort(()=>Math.random()-0.5);
 }
 
@@ -687,6 +798,7 @@ function createEnemy(x,y,answer,isCorrect){
   `;
 
   gameArea.appendChild(el);
+
   enemies.push({
     el,
     x,
@@ -699,23 +811,26 @@ function createEnemy(x,y,answer,isCorrect){
 
 function shoot(){
   if(!running || shootCooldown) return;
+
   shootCooldown = true;
   setTimeout(()=>shootCooldown=false,180);
 
   const bullet = document.createElement("div");
   bullet.className = "bullet";
+
   const x = playerX + 27;
-  const y = window.innerHeight - 150;
+  const y = playerY - 18;
 
   bullet.style.left = x + "px";
   bullet.style.top = y + "px";
-  gameArea.appendChild(bullet);
 
+  gameArea.appendChild(bullet);
   bullets.push({el:bullet,x,y});
+
   playShoot();
 }
 
-function loop(timestamp){
+function loop(){
   if(!running) return;
 
   movePlayer();
@@ -728,15 +843,27 @@ function loop(timestamp){
 
 function movePlayer(){
   const speed = 6.5;
-  if(keys["ArrowLeft"] || keys["a"]) playerX -= speed;
-  if(keys["ArrowRight"] || keys["d"]) playerX += speed;
+
+  if(keys["ArrowLeft"] || keys["a"] || keys["A"]) playerX -= speed;
+  if(keys["ArrowRight"] || keys["d"] || keys["D"]) playerX += speed;
+  if(keys["ArrowUp"] || keys["w"] || keys["W"]) playerY -= speed;
+  if(keys["ArrowDown"] || keys["s"] || keys["S"]) playerY += speed;
 
   playerX = Math.max(8, Math.min(window.innerWidth - 72, playerX));
+
+  const topLimit = window.innerWidth < 620 ? 105 : 82;
+  const bottomLimit = window.innerHeight - 145;
+
+  playerY = Math.max(topLimit, Math.min(bottomLimit, playerY));
+
   updatePlayer();
 }
 
 function updatePlayer(){
+  if(!player) return;
   player.style.left = playerX + "px";
+  player.style.top = playerY + "px";
+  player.style.bottom = "auto";
 }
 
 function moveBullets(){
@@ -787,8 +914,10 @@ function checkCollisions(){
 
       if(rectHit(br,er)){
         makeSpark(e.x + 36, e.y + 26);
+
         b.el.remove();
         e.el.remove();
+
         bullets.splice(bi,1);
         enemies.splice(ei,1);
 
@@ -805,6 +934,7 @@ function checkCollisions(){
           playWrong();
           loseLife("Oops! That was a wrong answer.");
         }
+
         return;
       }
     }
@@ -821,7 +951,7 @@ function loseLife(text){
   updateHud();
 
   if(lives <= 0){
-    endGame(false);
+    endGame();
   }else{
     showFloatingMessage(text + " Try the next wave!", 750);
     clearEnemiesAndBullets();
@@ -858,6 +988,7 @@ function winGame(){
       <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
     </div>
   `;
+
   $("message").style.display = "block";
   sillyPlaneDance();
 }
@@ -875,6 +1006,7 @@ function endGame(){
       <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
     </div>
   `;
+
   $("message").style.display = "block";
 }
 
@@ -882,7 +1014,10 @@ function showFloatingMessage(text,ms){
   const msg = $("message");
   msg.innerHTML = `<h2>Careful!</h2><p>${text}</p>`;
   msg.style.display = "block";
-  setTimeout(()=>{ if(running) msg.style.display = "none"; }, ms);
+
+  setTimeout(()=>{
+    if(running) msg.style.display = "none";
+  }, ms);
 }
 
 function makeSpark(x,y){
@@ -891,6 +1026,7 @@ function makeSpark(x,y){
   s.style.left = x + "px";
   s.style.top = y + "px";
   gameArea.appendChild(s);
+
   setTimeout(()=>s.remove(),400);
 }
 
@@ -909,42 +1045,34 @@ function makeClouds(){
 
 function sillyPlaneDance(){
   let t = 0;
+
   const dance = setInterval(()=>{
     t++;
     player.style.transform = `translateX(-50%) rotate(${Math.sin(t)*18}deg) scale(${1 + Math.sin(t*1.5)*0.08})`;
-    player.style.bottom = `${80 + Math.sin(t)*18}px`;
+    player.style.top = `${playerY + Math.sin(t)*18}px`;
+
     if(t > 28){
       clearInterval(dance);
       player.style.transform = "translateX(-50%)";
-      player.style.bottom = "80px";
+      updatePlayer();
     }
   },90);
 }
 
 function burstConfetti(count){
   const colors = ["#ef4444","#facc15","#22c55e","#3b82f6","#a855f7","#fb923c"];
+
   for(let i=0;i<count;i++){
     const p = document.createElement("div");
-    p.style.position = "fixed";
+    p.className = "confetti";
     p.style.left = Math.random()*100 + "vw";
-    p.style.top = "-20px";
-    p.style.width = "12px";
-    p.style.height = "18px";
     p.style.background = colors[Math.floor(Math.random()*colors.length)];
-    p.style.borderRadius = "4px";
-    p.style.zIndex = 100;
-    p.style.animation = `fall ${1.5 + Math.random()*1.5}s linear forwards`;
+    p.style.animationDuration = 1.5 + Math.random()*1.5 + "s";
     document.body.appendChild(p);
+
     setTimeout(()=>p.remove(),3000);
   }
 }
-
-const style = document.createElement("style");
-style.textContent = `
-@keyframes fall{
-  to{transform:translateY(110vh) rotate(720deg);opacity:.4;}
-}`;
-document.head.appendChild(style);
 
 function getAudio(){
   if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -956,21 +1084,37 @@ function beep(freq,dur,type="sine",gainVal=.06){
     const ctx = getAudio();
     const o = ctx.createOscillator();
     const g = ctx.createGain();
+
     o.type = type;
     o.frequency.value = freq;
     g.gain.value = gainVal;
+
     o.connect(g);
     g.connect(ctx.destination);
+
     o.start();
     g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+dur);
     o.stop(ctx.currentTime+dur);
   }catch(e){}
 }
 
-function playShoot(){ beep(520,.06,"square",.035); }
-function playCorrect(){ beep(660,.08); setTimeout(()=>beep(880,.1),90); }
-function playWrong(){ beep(180,.13,"sawtooth",.045); setTimeout(()=>beep(130,.13,"sawtooth",.045),110); }
-function playWin(){ [523,659,784,1046].forEach((n,i)=>setTimeout(()=>beep(n,.12),i*120)); }
+function playShoot(){
+  beep(520,.06,"square",.035);
+}
+
+function playCorrect(){
+  beep(660,.08);
+  setTimeout(()=>beep(880,.1),90);
+}
+
+function playWrong(){
+  beep(180,.13,"sawtooth",.045);
+  setTimeout(()=>beep(130,.13,"sawtooth",.045),110);
+}
+
+function playWin(){
+  [523,659,784,1046].forEach((n,i)=>setTimeout(()=>beep(n,.12),i*120));
+}
 
 function shuffle(arr){
   for(let i=arr.length-1;i>0;i--){
@@ -981,6 +1125,11 @@ function shuffle(arr){
 
 window.addEventListener("resize",()=>{
   playerX = Math.max(8, Math.min(window.innerWidth - 72, playerX));
+
+  const topLimit = window.innerWidth < 620 ? 105 : 82;
+  const bottomLimit = window.innerHeight - 145;
+  playerY = Math.max(topLimit, Math.min(bottomLimit, playerY));
+
   updatePlayer();
 });
 </script>
