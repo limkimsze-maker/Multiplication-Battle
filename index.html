@@ -19,15 +19,15 @@
   }
 
   html, body, #app, #game, #gameArea, button, a {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-    touch-action: none;
+    -webkit-touch-callout:none;
+    -webkit-user-select:none;
+    user-select:none;
+    touch-action:none;
   }
 
   button, a, .ctrl, .shoot, .dpad {
-    -webkit-user-drag: none;
-    user-drag: none;
+    -webkit-user-drag:none;
+    user-drag:none;
   }
 
   html,body{
@@ -310,13 +310,9 @@
     border:2px solid #0f172a;
   }
 
-  #player.level1 .body{
-    background:#2563eb;
-  }
+  #player.level1 .body{background:#2563eb;}
 
-  #player.level2 .body{
-    background:#16a34a;
-  }
+  #player.level2 .body{background:#16a34a;}
 
   #player.level2 .body::after{
     content:"";
@@ -521,7 +517,7 @@
     top:50%;
     transform:translate(-50%,-50%);
     z-index:100;
-    width:min(760px,92vw);
+    width:min(780px,92vw);
     background:#ffffffee;
     border:5px solid #1e3a8a;
     border-radius:28px;
@@ -529,6 +525,8 @@
     text-align:center;
     box-shadow:0 10px 0 #172554,0 18px 28px #0004;
     display:none;
+    max-height:90vh;
+    overflow:hidden;
   }
 
   #message h2{
@@ -540,6 +538,82 @@
   #message p{
     font-weight:bold;
     font-size:1.15rem;
+  }
+
+  .land-scene{
+    position:relative;
+    min-height:310px;
+    border:5px solid #166534;
+    border-radius:28px;
+    background:
+      radial-gradient(circle at 20% 20%, #ffffffaa 0 8%, transparent 9%),
+      linear-gradient(180deg,#93c5fd 0 45%, #86efac 46% 100%);
+    overflow:hidden;
+    margin:10px 0;
+  }
+
+  .land-plane{
+    position:absolute;
+    left:50%;
+    top:35px;
+    transform:translateX(-50%) rotate(90deg);
+    font-size:3.5rem;
+    animation:landPlane 1s ease-out forwards;
+  }
+
+  @keyframes landPlane{
+    from{transform:translate(-50%,-120px) rotate(90deg);}
+    to{transform:translate(-50%,0) rotate(90deg);}
+  }
+
+  .fact-field{
+    position:absolute;
+    left:10px;
+    right:10px;
+    bottom:20px;
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:8px;
+  }
+
+  .fact-tile{
+    background:#fff7cc;
+    border:3px solid #92400e;
+    border-radius:14px;
+    padding:8px 10px;
+    font-weight:bold;
+    font-size:1rem;
+    box-shadow:0 4px 0 #78350f;
+    transition:transform .35s ease, opacity .35s ease;
+  }
+
+  .fact-tile.blast{
+    transform:scale(0) rotate(360deg);
+    opacity:0;
+  }
+
+  .bomb-button{
+    margin-top:12px;
+    background:linear-gradient(#fecaca,#ef4444);
+    box-shadow:0 6px 0 #991b1b;
+    color:#fff;
+    font-size:1.25rem;
+    border:4px solid #7f1d1d;
+  }
+
+  .blast-word{
+    font-size:clamp(2rem,8vw,4rem);
+    font-weight:900;
+    color:#dc2626;
+    text-shadow:3px 3px 0 #fff, 6px 6px 0 #facc15;
+    animation:blastPop .7s ease-out forwards;
+  }
+
+  @keyframes blastPop{
+    0%{transform:scale(.3);opacity:0;}
+    50%{transform:scale(1.2);opacity:1;}
+    100%{transform:scale(1);opacity:1;}
   }
 
   .promotion-card{
@@ -669,6 +743,15 @@
       padding:3px 6px;
     }
 
+    .land-scene{
+      min-height:250px;
+    }
+
+    .fact-tile{
+      font-size:.82rem;
+      padding:5px 7px;
+    }
+
     .credit{
       display:none;
     }
@@ -706,6 +789,10 @@
     .promotion-rank{
       font-size:clamp(2.4rem,10vw,4.6rem);
     }
+
+    .land-scene{
+      min-height:220px;
+    }
   }
 </style>
 </head>
@@ -726,7 +813,7 @@
       </div>
 
       <p><b>Mission:</b> Shoot the enemy plane carrying the correct multiplication answer.</p>
-      <p>Enemy planes may shoot once when they appear. Dodge the slow red shots!</p>
+      <p>At the end of each stage, land your plane and clear the multiplication facts with a bomb!</p>
       <p><b>Mobile tip:</b> Drag the plane with your finger or use the buttons.</p>
 
       <div class="btn-row">
@@ -788,51 +875,40 @@
 </div>
 
 <script>
-document.addEventListener("contextmenu", function(e){
-  e.preventDefault();
-}, { passive:false });
-
-document.addEventListener("selectstart", function(e){
-  e.preventDefault();
-}, { passive:false });
-
-document.addEventListener("dragstart", function(e){
-  e.preventDefault();
-}, { passive:false });
+document.addEventListener("contextmenu", e => e.preventDefault(), { passive:false });
+document.addEventListener("selectstart", e => e.preventDefault(), { passive:false });
+document.addEventListener("dragstart", e => e.preventDefault(), { passive:false });
 
 const LEVELS = [
   {
-    name: "Level 1",
-    tables: [2,3,4,5],
-    questions: 12,
-    currentRank: "Cadet",
-    promotion: "Captain",
-    weapon: "Single Shot",
-    nextWeapon: "3-Shot Spray Gun unlocked!",
-    enemySpeed: 1.05,
-    maxEnemyBullets: 1
+    name:"Level 1",
+    tables:[2,3,4,5],
+    questions:12,
+    currentRank:"Cadet",
+    promotion:"Captain",
+    nextWeapon:"3-Shot Spray Gun unlocked!",
+    enemySpeed:1.05,
+    maxEnemyBullets:1
   },
   {
-    name: "Level 2",
-    tables: [6,7,8,9,10],
-    questions: 12,
-    currentRank: "Captain",
-    promotion: "Major",
-    weapon: "3-Shot Spray Gun",
-    nextWeapon: "Laser Gun unlocked!",
-    enemySpeed: 1.15,
-    maxEnemyBullets: 2
+    name:"Level 2",
+    tables:[6,7,8,9,10],
+    questions:12,
+    currentRank:"Captain",
+    promotion:"Major",
+    nextWeapon:"Laser Gun unlocked!",
+    enemySpeed:1.15,
+    maxEnemyBullets:2
   },
   {
-    name: "Level 3",
-    tables: [2,3,4,5,6,7,8,9,10,11,12],
-    questions: 15,
-    currentRank: "Major",
-    promotion: "General",
-    weapon: "Laser Gun",
-    nextWeapon: "Final rank achieved!",
-    enemySpeed: 1.2,
-    maxEnemyBullets: 2
+    name:"Level 3",
+    tables:[2,3,4,5,6,7,8,9,10,11,12],
+    questions:15,
+    currentRank:"Major",
+    promotion:"General",
+    nextWeapon:"Final rank achieved!",
+    enemySpeed:1.2,
+    maxEnemyBullets:2
   }
 ];
 
@@ -876,7 +952,7 @@ function showHow(){
     <p><b>Mobile:</b> Drag the plane with your finger or use the direction buttons. Press 🔥 to shoot.</p>
     <p>Shoot only the plane with the correct multiplication answer.</p>
     <p>Enemy planes shoot only once when they appear. Their red shots are slow and easy to dodge.</p>
-    <p>Complete Level 1 to become <b>Captain</b>, Level 2 to become <b>Major</b>, and Level 3 to become <b>General</b>.</p>
+    <p>After each stage, press the red bomb button to destroy the multiplication facts and earn your promotion.</p>
     <div class="btn-row">
       <button onclick="location.reload()">Back</button>
       <button class="success" onclick="startGame()">Start Mission</button>
@@ -942,13 +1018,11 @@ function startLevel(index){
 
 function makeFacts(tables, count){
   const pool = [];
-
   tables.forEach(t=>{
     for(let m = 2; m <= 12; m++){
       pool.push([t,m]);
     }
   });
-
   shuffle(pool);
   return pool.slice(0,count);
 }
@@ -956,7 +1030,6 @@ function makeFacts(tables, count){
 function bindControls(){
   document.onkeydown = e => {
     keys[e.key] = true;
-
     if(e.code === "Space"){
       e.preventDefault();
       shoot();
@@ -973,13 +1046,10 @@ function bindControls(){
   holdButton("downBtn",  () => keys["ArrowDown"] = true,  () => keys["ArrowDown"] = false);
 
   const shootBtn = $("shootBtn");
-
   shootBtn.addEventListener("pointerdown", e => {
     e.preventDefault();
     e.stopPropagation();
-
     try { shootBtn.setPointerCapture(e.pointerId); } catch(err) {}
-
     shoot();
   }, { passive:false });
 }
@@ -990,9 +1060,7 @@ function holdButton(id, down, up){
   btn.addEventListener("pointerdown", e => {
     e.preventDefault();
     e.stopPropagation();
-
     try { btn.setPointerCapture(e.pointerId); } catch(err) {}
-
     down();
   }, { passive:false });
 
@@ -1019,7 +1087,6 @@ function bindDragMovement(){
   game.onpointerdown = e => {
     if(!running) return;
     if(e.target.closest("button") || e.target.closest("a")) return;
-
     draggingPlane = true;
     movePlaneToPointer(e);
   };
@@ -1029,13 +1096,8 @@ function bindDragMovement(){
     movePlaneToPointer(e);
   };
 
-  game.onpointerup = () => {
-    draggingPlane = false;
-  };
-
-  game.onpointercancel = () => {
-    draggingPlane = false;
-  };
+  game.onpointerup = () => draggingPlane = false;
+  game.onpointercancel = () => draggingPlane = false;
 }
 
 function movePlaneToPointer(e){
@@ -1069,14 +1131,6 @@ function nextFact(){
 function spawnAnswerWave(){
   const answers = generateAnswers(correctAnswer);
 
-  /*
-    Strong no-overlap placement:
-    - 4 fixed safe columns
-    - large vertical gaps
-    - enemies enter one after another
-    - works better on mobile screens
-  */
-
   const isMobile = window.innerWidth < 620;
   const enemyWidth = isMobile ? 78 : 88;
   const sidePadding = isMobile ? 18 : 34;
@@ -1096,10 +1150,7 @@ function spawnAnswerWave(){
 
   answers.forEach((ans, i) => {
     const x = xPositions[i];
-
-    // Bigger vertical gap prevents visual overlap.
     const y = -120 - (i * 150);
-
     createEnemy(x, y, ans, ans === correctAnswer);
   });
 }
@@ -1176,9 +1227,7 @@ function fireSingleBullet(){
 }
 
 function fireSprayGun(){
-  const shotX = playerX + 27;
-
-  createPlayerBullet(shotX, playerY - 18, 0, "bullet sprayBullet");
+  createPlayerBullet(playerX + 27, playerY - 18, 0, "bullet sprayBullet");
 
   setTimeout(() => {
     if(running) createPlayerBullet(playerX + 27, playerY - 18, 0, "bullet sprayBullet");
@@ -1194,7 +1243,6 @@ function createPlayerBullet(x, y, vx, className){
   bullet.className = className;
   bullet.style.left = x + "px";
   bullet.style.top = y + "px";
-
   gameArea.appendChild(bullet);
   bullets.push({el:bullet, x, y, vx});
 }
@@ -1204,11 +1252,10 @@ function fireLaserGun(){
   laser.className = "laserBeam";
 
   const laserX = playerX + 20;
-  const laserTop = 0;
   const laserHeight = playerY;
 
   laser.style.left = laserX + "px";
-  laser.style.top = laserTop + "px";
+  laser.style.top = "0px";
   laser.style.height = laserHeight + "px";
 
   gameArea.appendChild(laser);
@@ -1263,7 +1310,6 @@ function moveBullets(){
   bullets.forEach(b=>{
     b.y -= bulletSpeed;
     b.x += b.vx || 0;
-
     b.el.style.top = b.y + "px";
     b.el.style.left = b.x + "px";
   });
@@ -1306,14 +1352,13 @@ function enemyShootBack(){
 
   bullet.style.left = x + "px";
   bullet.style.top = y + "px";
-
   gameArea.appendChild(bullet);
 
   enemyBullets.push({
-    el: bullet,
+    el:bullet,
     x,
     y,
-    speed: 2.0 + Math.random() * 0.25
+    speed:2.0 + Math.random() * 0.25
   });
 }
 
@@ -1348,7 +1393,6 @@ function moveEnemies(){
 
       return false;
     }
-
     return true;
   });
 
@@ -1361,16 +1405,8 @@ function checkLaserHit(laserLeft, laserRight){
   if(!running) return;
 
   const hitList = enemies
-    .map((e, index) => {
-      const r = e.el.getBoundingClientRect();
-      return { e, index, r };
-    })
-    .filter(item => {
-      return item.r.right >= laserLeft &&
-             item.r.left <= laserRight &&
-             item.r.bottom >= 0 &&
-             item.r.top <= playerY;
-    })
+    .map((e, index) => ({ e, index, r:e.el.getBoundingClientRect() }))
+    .filter(item => item.r.right >= laserLeft && item.r.left <= laserRight && item.r.bottom >= 0 && item.r.top <= playerY)
     .sort((a,b) => b.r.top - a.r.top);
 
   if(hitList.length === 0) return;
@@ -1382,20 +1418,7 @@ function checkLaserHit(laserLeft, laserRight){
   e.el.remove();
   enemies.splice(hit.index, 1);
 
-  if(e.correct){
-    score++;
-    totalScore++;
-    streak++;
-    current++;
-    playCorrect();
-    enemySpeed = Math.min(enemySpeed + 0.04, 2.25);
-    updateHud();
-    setTimeout(nextFact,430);
-  }else{
-    streak = 0;
-    playWrong();
-    loseLife("Oops! The laser hit a wrong answer.");
-  }
+  handleEnemyHit(e, "laser");
 }
 
 function checkCollisions(){
@@ -1409,31 +1432,33 @@ function checkCollisions(){
 
       if(rectHit(br,er)){
         makeSpark(e.x + 36, e.y + 26);
-
         b.el.remove();
         e.el.remove();
 
         bullets.splice(bi,1);
         enemies.splice(ei,1);
 
-        if(e.correct){
-          score++;
-          totalScore++;
-          streak++;
-          current++;
-          playCorrect();
-          enemySpeed = Math.min(enemySpeed + 0.04, 2.25);
-          updateHud();
-          setTimeout(nextFact,430);
-        }else{
-          streak = 0;
-          playWrong();
-          loseLife("Oops! That was a wrong answer.");
-        }
-
+        handleEnemyHit(e, "bullet");
         return;
       }
     }
+  }
+}
+
+function handleEnemyHit(e, type){
+  if(e.correct){
+    score++;
+    totalScore++;
+    streak++;
+    current++;
+    playCorrect();
+    enemySpeed = Math.min(enemySpeed + 0.04, 2.25);
+    updateHud();
+    setTimeout(nextFact,430);
+  }else{
+    streak = 0;
+    playWrong();
+    loseLife(type === "laser" ? "Oops! The laser hit a wrong answer." : "Oops! That was a wrong answer.");
   }
 }
 
@@ -1448,13 +1473,10 @@ function checkEnemyBulletHits(){
 
     if(rectHit(pr, br)){
       makeSpark(playerX + 30, playerY + 30);
-
       b.el.remove();
       enemyBullets.splice(i,1);
-
       playWrong();
       loseLife("You were hit by an enemy shot!");
-
       return;
     }
   }
@@ -1481,12 +1503,77 @@ function loseLife(text){
 function levelCleared(){
   running = false;
   clearEnemiesAndBullets();
+  playPromotionSound();
+  burstConfetti(50);
+  showLandingFacts();
+}
 
+function showLandingFacts(){
+  const level = LEVELS[levelIndex];
+  const factsHtml = makeStageFactTiles(level.tables);
+
+  $("message").innerHTML = `
+    <h2>Stage ${levelIndex + 1} Cleared! ✈️</h2>
+
+    <div class="land-scene">
+      <div class="land-plane">✈️</div>
+      <div class="fact-field" id="factField">
+        ${factsHtml}
+      </div>
+    </div>
+
+    <p>Your plane has reached land full of multiplication facts.</p>
+    <p>Press the red bomb button to clear the facts and receive your promotion!</p>
+
+    <div class="btn-row">
+      <button class="bomb-button" onclick="blastFacts()">💣 Clear the Facts!</button>
+    </div>
+  `;
+
+  $("message").style.display = "block";
+}
+
+function makeStageFactTiles(tables){
+  const tiles = [];
+
+  tables.forEach(t=>{
+    for(let m = 2; m <= 12; m++){
+      tiles.push(`${t} × ${m}`);
+    }
+  });
+
+  shuffle(tiles);
+
+  return tiles
+    .slice(0, 18)
+    .map(fact => `<div class="fact-tile">${fact}</div>`)
+    .join("");
+}
+
+function blastFacts(){
+  const tiles = document.querySelectorAll(".fact-tile");
+
+  tiles.forEach((tile, index)=>{
+    setTimeout(()=>{
+      tile.classList.add("blast");
+      playWrong();
+    }, index * 45);
+  });
+
+  setTimeout(()=>{
+    $("factField").innerHTML = `<div class="blast-word">BOOM!</div>`;
+    burstConfetti(70);
+    playPromotionSound();
+  }, tiles.length * 45 + 150);
+
+  setTimeout(()=>{
+    showPromotionScreen();
+  }, tiles.length * 45 + 1100);
+}
+
+function showPromotionScreen(){
   const level = LEVELS[levelIndex];
   const rank = level.promotion;
-
-  playPromotionSound();
-  burstConfetti(90);
 
   if(levelIndex < LEVELS.length - 1){
     $("message").innerHTML = `
@@ -1593,7 +1680,6 @@ function makeSpark(x,y){
   s.style.left = x + "px";
   s.style.top = y + "px";
   gameArea.appendChild(s);
-
   setTimeout(()=>s.remove(),400);
 }
 
@@ -1636,7 +1722,6 @@ function burstConfetti(count){
     p.style.background = colors[Math.floor(Math.random()*colors.length)];
     p.style.animationDuration = 1.5 + Math.random()*1.5 + "s";
     document.body.appendChild(p);
-
     setTimeout(()=>p.remove(),3000);
   }
 }
@@ -1665,9 +1750,7 @@ function beep(freq,dur,type="sine",gainVal=.06){
   }catch(e){}
 }
 
-function playShoot(){
-  beep(520,.06,"square",.035);
-}
+function playShoot(){ beep(520,.06,"square",.035); }
 
 function playCorrect(){
   beep(660,.08);
