@@ -455,6 +455,18 @@
     animation:laserFlash .14s linear forwards;
   }
 
+  .sideLaserBeam{
+    position:absolute;
+    height:24px;
+    background:linear-gradient(180deg, transparent, #67e8f9, #ffffff, #67e8f9, transparent);
+    border-top:3px solid #0891b2;
+    border-bottom:3px solid #0891b2;
+    box-shadow:0 0 18px #22d3ee;
+    z-index:6;
+    border-radius:999px;
+    animation:laserFlash .14s linear forwards;
+  }
+
   @keyframes laserFlash{
     from{opacity:1; transform:scaleX(1);}
     to{opacity:0; transform:scaleX(1.6);}
@@ -971,8 +983,8 @@
 
   <section id="cover" class="screen active">
     <div class="cover-card">
-      <h1>🚀 Multiply Flyer</h1>
-      <div class="subtitle">Space Commander — Multiplication Facts Mission</div>
+      <h1>🚀 Multiply Space Commander</h1>
+      <div class="subtitle">Multiplication Facts Mission</div>
       <div class="plane-big"></div>
 
       <div class="level-list">
@@ -1485,16 +1497,109 @@ function shoot(){
 function shootSide(direction){
   if(!running || shootCooldown) return;
 
-  shootCooldown = true;
-  setTimeout(()=>shootCooldown=false,180);
+  const weaponLevel = levelIndex + 1;
+  const dir = direction === "left" ? -1 : 1;
+  const startX = direction === "left" ? playerX - 8 : playerX + 64;
+  const startY = playerY + 28;
 
-  if(direction === "left"){
-    createSideBullet(playerX - 8, playerY + 28, -8, "bullet sprayBullet sideBullet");
-  }else{
-    createSideBullet(playerX + 64, playerY + 28, 8, "bullet sprayBullet sideBullet");
+  if(weaponLevel === 1){
+    shootCooldown = true;
+    setTimeout(()=>shootCooldown=false,150);
+    createSideBullet(startX, startY, dir * 8, "bullet sprayBullet sideBullet");
+  }
+
+  if(weaponLevel === 2){
+    shootCooldown = true;
+    setTimeout(()=>shootCooldown=false,330);
+
+    createSideBullet(startX, startY, dir * 8, "bullet sprayBullet sideBullet");
+
+    setTimeout(() => {
+      if(running) createSideBullet(startX, startY, dir * 8, "bullet sprayBullet sideBullet");
+    }, 90);
+
+    setTimeout(() => {
+      if(running) createSideBullet(startX, startY, dir * 8, "bullet sprayBullet sideBullet");
+    }, 180);
+  }
+
+  if(weaponLevel === 3){
+    shootCooldown = true;
+    setTimeout(()=>shootCooldown=false,230);
+    fireSideLaser(direction);
   }
 
   playShoot();
+}
+
+function fireSideLaser(direction){
+  const laser = document.createElement("div");
+  laser.className = "sideLaserBeam";
+
+  const y = playerY + 31;
+
+  if(direction === "left"){
+    laser.style.left = "0px";
+    laser.style.top = y + "px";
+    laser.style.width = playerX + "px";
+  }else{
+    laser.style.left = (playerX + 64) + "px";
+    laser.style.top = y + "px";
+    laser.style.width = (window.innerWidth - playerX - 64) + "px";
+  }
+
+  gameArea.appendChild(laser);
+  setTimeout(()=>laser.remove(),150);
+
+  checkSideLaserHit(direction, y);
+}
+
+function checkSideLaserHit(direction, laserY){
+  if(!running) return;
+
+  const hitList = enemies
+    .map((e, index) => {
+      const r = e.el.getBoundingClientRect();
+
+      const preciseBox = {
+        left: r.left + 10,
+        right: r.right - 10,
+        top: r.top + 8,
+        bottom: r.bottom - 8
+      };
+
+      return { e, index, r: preciseBox };
+    })
+    .filter(item => {
+      const sameHorizontalLine =
+        laserY >= item.r.top &&
+        laserY <= item.r.bottom;
+
+      const correctDirection =
+        direction === "left"
+          ? item.r.right < playerX
+          : item.r.left > playerX;
+
+      return sameHorizontalLine && correctDirection;
+    })
+    .sort((a,b) => {
+      if(direction === "left"){
+        return b.r.right - a.r.right;
+      }else{
+        return a.r.left - b.r.left;
+      }
+    });
+
+  if(hitList.length === 0) return;
+
+  const hit = hitList[0];
+  const e = hit.e;
+
+  makeSpark(e.x + 36, e.y + 26);
+  e.el.remove();
+  enemies.splice(hit.index, 1);
+
+  handleEnemyHit(e, "laser");
 }
 
 function fireCheatShot(){
@@ -2064,19 +2169,43 @@ function endGame(){
   running = false;
   clearEnemiesAndBullets();
 
+  const canContinueSameLevel = levelIndex > 0;
+
+  const continueButton = canContinueSameLevel
+    ? `<button class="success" onclick="continueSameLevel()">Continue from Level ${levelIndex + 1}</button>`
+    : `<button class="success" onclick="startGame()">Restart Mission</button>`;
+
   $("message").innerHTML = `
     <h2>Mission Paused! 🚀</h2>
     <p>You reached Level ${levelIndex + 1}.</p>
     <p>Current Rank: <b>${LEVELS[levelIndex].currentRank}</b></p>
     <p>Level Score: <b>${score}/${facts.length}</b></p>
     <p>Total Score: <b>${totalScore}</b></p>
+
     <div class="btn-row">
-      <button class="success" onclick="startGame()">Restart Mission</button>
+      ${continueButton}
+      <button class="secondary" onclick="startGame()">Restart from Level 1</button>
       <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
     </div>
   `;
 
   $("message").style.display = "block";
+}
+
+function continueSameLevel(){
+  running = true;
+  lives = 3;
+  streak = 0;
+  cheatUsedThisStage = false;
+  cheatActive = false;
+  slowMotionUntil = 0;
+  updateCheatButton();
+  hideCheatBadge();
+
+  startLevel(levelIndex);
+
+  if(animationId) cancelAnimationFrame(animationId);
+  animationId = requestAnimationFrame(loop);
 }
 
 function updateHud(){
@@ -2239,4 +2368,4 @@ window.addEventListener("resize",()=>{
 });
 </script>
 </body>
-</html>
+  </html>
