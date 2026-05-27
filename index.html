@@ -1000,6 +1000,8 @@ let audioCtx = null;
 let draggingPlane = false;
 let dragOffsetX = 32;
 let dragOffsetY = 38;
+let respawnTimer = null;
+let waveLocked = false;
 
 function $(id){ return document.getElementById(id); }
 
@@ -1035,6 +1037,7 @@ function startGame(){
   running = true;
   shootCooldown = false;
   draggingPlane = false;
+  waveLocked = false;
 
   gameArea.innerHTML = "";
   $("message").style.display = "none";
@@ -1064,6 +1067,7 @@ function startLevel(index){
   bullets = [];
   enemyBullets = [];
   enemySpeed = level.enemySpeed;
+  waveLocked = false;
 
   facts = makeFacts(level.tables, level.questions);
 
@@ -1209,6 +1213,11 @@ function nextFact(){
 }
 
 function spawnAnswerWave(){
+  if(!running) return;
+  if(waveLocked) return;
+
+  waveLocked = true;
+
   const answers = generateAnswers(correctAnswer, 4);
 
   const isMobile = window.innerWidth < 620;
@@ -1220,7 +1229,7 @@ function spawnAnswerWave(){
 
   const safeX = x => Math.max(minX, Math.min(maxX, x));
 
-  const rowGap = isMobile ? 145 : 165;
+  const rowGap = isMobile ? 155 : 180;
 
   const positions = [
     { x: safeX(window.innerWidth * 0.18 - enemyWidth / 2), y: -95 },
@@ -1233,6 +1242,10 @@ function spawnAnswerWave(){
     const pos = positions[i];
     createEnemy(pos.x, pos.y, ans, ans === correctAnswer);
   });
+
+  setTimeout(() => {
+    waveLocked = false;
+  }, 250);
 }
 
 function generateAnswers(correct, count = 4){
@@ -1480,7 +1493,7 @@ function moveEnemies(){
     return true;
   });
 
-  if(enemies.length === 0 && running){
+  if(enemies.length === 0 && running && !respawnTimer && !waveLocked){
     spawnAnswerWave();
   }
 }
@@ -1598,12 +1611,19 @@ function loseLife(text){
   streak = 0;
   updateHud();
 
+  clearEnemiesAndBullets();
+
   if(lives <= 0){
     endGame();
   }else{
     showFloatingMessage(text + " Try again!", 800);
-    clearEnemiesAndBullets();
-    setTimeout(spawnAnswerWave,700);
+
+    respawnTimer = setTimeout(() => {
+      respawnTimer = null;
+      if(running){
+        spawnAnswerWave();
+      }
+    }, 900);
   }
 }
 
@@ -1776,6 +1796,11 @@ function updateHud(){
 }
 
 function clearEnemiesAndBullets(){
+  if(respawnTimer){
+    clearTimeout(respawnTimer);
+    respawnTimer = null;
+  }
+
   enemies.forEach(e=>e.el.remove());
   bullets.forEach(b=>b.el.remove());
   enemyBullets.forEach(b=>b.el.remove());
@@ -1783,6 +1808,7 @@ function clearEnemiesAndBullets(){
   enemies = [];
   bullets = [];
   enemyBullets = [];
+  waveLocked = false;
 }
 
 function showFloatingMessage(text,ms){
