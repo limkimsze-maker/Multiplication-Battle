@@ -2095,7 +2095,12 @@ function handleEnemyHit(e, type){
   }else{
     streak = 0;
     playWrong();
-    loseLife("Wrong answer.", false);
+
+    if(shieldActive && Date.now() < shieldUntil){
+      loseLife("Wrong answer. Force Shield only protects you from being hit, not from choosing a wrong answer.", false);
+    }else{
+      loseLife("Wrong answer.", false);
+    }
   }
 }
 
