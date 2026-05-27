@@ -509,12 +509,26 @@
   }
 
   .shoot{
-    width:96px;
+    width:88px;
     height:82px;
     border-radius:24px;
     font-size:2rem;
     background:linear-gradient(#fecaca,#fb7185);
     box-shadow:0 5px 0 #be123c;
+  }
+
+  .weapon-buttons{
+    gap:8px;
+    align-items:end;
+  }
+
+  .side-shoot{
+    width:64px;
+    height:68px;
+    border-radius:22px;
+    font-size:1.45rem;
+    background:linear-gradient(#dbeafe,#60a5fa);
+    box-shadow:0 5px 0 #1d4ed8;
   }
 
   #message{
@@ -775,25 +789,35 @@
 
     #controls{
       bottom:calc(95px + env(safe-area-inset-bottom));
-      padding:0 14px;
+      padding:0 10px;
     }
 
     .dpad{
-      grid-template-columns:62px 62px 62px;
-      grid-template-rows:58px 58px;
-      gap:7px;
+      grid-template-columns:58px 58px 58px;
+      grid-template-rows:54px 54px;
+      gap:6px;
     }
 
     .ctrl{
-      width:62px;
-      height:58px;
-      font-size:1.35rem;
+      width:58px;
+      height:54px;
+      font-size:1.2rem;
     }
 
     .shoot{
-      width:90px;
-      height:76px;
-      font-size:1.85rem;
+      width:70px;
+      height:68px;
+      font-size:1.65rem;
+    }
+
+    .weapon-buttons{
+      gap:5px;
+    }
+
+    .side-shoot{
+      width:50px;
+      height:58px;
+      font-size:1.1rem;
     }
 
     .enemy{
@@ -925,8 +949,10 @@
           <button class="ctrl" id="rightBtn">▶</button>
         </div>
 
-        <div class="control-group">
+        <div class="control-group weapon-buttons">
+          <button class="ctrl side-shoot" id="leftShootBtn">L</button>
           <button class="ctrl shoot" id="shootBtn">🔥</button>
+          <button class="ctrl side-shoot" id="rightShootBtn">R</button>
         </div>
       </div>
 
@@ -1014,7 +1040,7 @@ function showHow(){
   $("cover").querySelector(".cover-card").innerHTML = `
     <h1>How to Play</h1>
     <p><b>Move:</b> Drag the spaceship or use the arrow buttons.</p>
-    <p><b>Shoot:</b> Press 🔥 to shoot the correct answer.</p>
+    <p><b>Shoot:</b> Press L, 🔥 or R to shoot the correct answer.</p>
     <p><b>Goal:</b> Complete all 3 levels and earn your promotions.</p>
     <div class="btn-row">
       <button type="button" onclick="location.reload()">Back</button>
@@ -1095,9 +1121,18 @@ function makeFacts(tables, count){
 function bindControls(){
   document.onkeydown = e => {
     keys[e.key] = true;
+
     if(e.code === "Space"){
       e.preventDefault();
       shoot();
+    }
+
+    if(e.key === "q" || e.key === "Q"){
+      shootSide("left");
+    }
+
+    if(e.key === "e" || e.key === "E"){
+      shootSide("right");
     }
   };
 
@@ -1116,6 +1151,22 @@ function bindControls(){
     e.stopPropagation();
     try { shootBtn.setPointerCapture(e.pointerId); } catch(err) {}
     shoot();
+  }, { passive:false });
+
+  const leftShootBtn = $("leftShootBtn");
+  leftShootBtn.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    try { leftShootBtn.setPointerCapture(e.pointerId); } catch(err) {}
+    shootSide("left");
+  }, { passive:false });
+
+  const rightShootBtn = $("rightShootBtn");
+  rightShootBtn.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    try { rightShootBtn.setPointerCapture(e.pointerId); } catch(err) {}
+    shootSide("right");
   }, { passive:false });
 }
 
@@ -1314,6 +1365,21 @@ function shoot(){
     shootCooldown = true;
     setTimeout(()=>shootCooldown=false,230);
     fireLaserGun();
+  }
+
+  playShoot();
+}
+
+function shootSide(direction){
+  if(!running || shootCooldown) return;
+
+  shootCooldown = true;
+  setTimeout(()=>shootCooldown=false,180);
+
+  if(direction === "left"){
+    createPlayerBullet(playerX + 8, playerY - 10, 0, "bullet sprayBullet");
+  }else{
+    createPlayerBullet(playerX + 48, playerY - 10, 0, "bullet sprayBullet");
   }
 
   playShoot();
