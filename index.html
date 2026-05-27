@@ -1209,51 +1209,85 @@ function nextFact(){
 }
 
 function spawnAnswerWave(){
-  const answers = generateAnswers(correctAnswer);
+  /*
+    Formation by level:
+    Level 1: clear 2-row formation
+    Level 2: V formation
+    Level 3: W formation
+
+    The y-values are deliberately far apart so ships do not overlap.
+  */
 
   const isMobile = window.innerWidth < 620;
   const enemyWidth = isMobile ? 72 : 78;
-  const sidePadding = isMobile ? 22 : 48;
-  const rowGap = isMobile ? 135 : 155;
+  const sidePadding = isMobile ? 24 : 56;
 
-  const leftX = sidePadding;
-  const rightX = window.innerWidth - sidePadding - enemyWidth;
-  const middleLeftX = window.innerWidth * 0.30 - enemyWidth / 2;
-  const middleRightX = window.innerWidth * 0.70 - enemyWidth / 2;
+  const minX = sidePadding;
+  const maxX = window.innerWidth - sidePadding - enemyWidth;
 
-  const lowerRowY = -95;
-  const upperRowY = lowerRowY - rowGap;
+  const safeX = x => Math.max(minX, Math.min(maxX, x));
 
-  const positions = [
-    { x: leftX, y: lowerRowY },
-    { x: rightX, y: lowerRowY },
-    { x: middleLeftX, y: upperRowY },
-    { x: middleRightX, y: upperRowY }
-  ];
+  let positions = [];
+  let answerCount = 4;
+
+  if(levelIndex === 0){
+    const rowGap = isMobile ? 145 : 165;
+
+    positions = [
+      { x: safeX(window.innerWidth * 0.18 - enemyWidth / 2), y: -95 },
+      { x: safeX(window.innerWidth * 0.82 - enemyWidth / 2), y: -95 },
+      { x: safeX(window.innerWidth * 0.35 - enemyWidth / 2), y: -95 - rowGap },
+      { x: safeX(window.innerWidth * 0.65 - enemyWidth / 2), y: -95 - rowGap }
+    ];
+  }
+
+  if(levelIndex === 1){
+    const gapY = isMobile ? 125 : 145;
+
+    positions = [
+      { x: safeX(window.innerWidth * 0.18 - enemyWidth / 2), y: -95 },
+      { x: safeX(window.innerWidth * 0.82 - enemyWidth / 2), y: -95 },
+      { x: safeX(window.innerWidth * 0.35 - enemyWidth / 2), y: -95 - gapY },
+      { x: safeX(window.innerWidth * 0.50 - enemyWidth / 2), y: -95 - gapY * 2 }
+    ];
+  }
+
+  if(levelIndex === 2){
+    answerCount = 5;
+    const gapY = isMobile ? 115 : 135;
+
+    positions = [
+      { x: safeX(window.innerWidth * 0.10 - enemyWidth / 2), y: -95 },
+      { x: safeX(window.innerWidth * 0.30 - enemyWidth / 2), y: -95 - gapY },
+      { x: safeX(window.innerWidth * 0.50 - enemyWidth / 2), y: -95 },
+      { x: safeX(window.innerWidth * 0.70 - enemyWidth / 2), y: -95 - gapY },
+      { x: safeX(window.innerWidth * 0.90 - enemyWidth / 2), y: -95 }
+    ];
+  }
+
+  const answers = generateAnswers(correctAnswer, answerCount);
 
   answers.forEach((ans, i) => {
     const pos = positions[i];
-
-    const safeX = Math.max(
-      sidePadding,
-      Math.min(window.innerWidth - sidePadding - enemyWidth, pos.x)
-    );
-
-    createEnemy(safeX, pos.y, ans, ans === correctAnswer);
+    createEnemy(pos.x, pos.y, ans, ans === correctAnswer);
   });
 }
 
-function generateAnswers(correct){
+function generateAnswers(correct, count = 4){
   const set = new Set([correct]);
-  const offsets = [-24,-20,-18,-16,-14,-12,-10,-9,-8,-7,-6,-5,-4,-3,3,4,5,6,7,8,9,10,12,14,16,18,20,24];
 
-  while(set.size < 4){
-    const offset = offsets[Math.floor(Math.random()*offsets.length)];
+  const offsets = [
+    -36,-32,-30,-28,-24,-20,-18,-16,-14,-12,-10,-9,-8,-7,-6,-5,-4,-3,
+     3,4,5,6,7,8,9,10,12,14,16,18,20,24,28,30,32,36
+  ];
+
+  while(set.size < count){
+    const offset = offsets[Math.floor(Math.random() * offsets.length)];
     const value = correct + offset;
     if(value > 0) set.add(value);
   }
 
-  return Array.from(set).sort(()=>Math.random()-0.5);
+  return Array.from(set).sort(() => Math.random() - 0.5);
 }
 
 function createEnemy(x,y,answer,isCorrect){
@@ -1907,12 +1941,6 @@ function setupStartButton(){
     e.stopPropagation();
     startGame();
   }, { passive:false });
-
-  startBtn.addEventListener("pointerup", function(e){
-    e.preventDefault();
-    e.stopPropagation();
-    startGame();
-  }, { passive:false });
 }
 
 setupStartButton();
@@ -1923,4 +1951,4 @@ window.addEventListener("resize",()=>{
 });
 </script>
 </body>
-  </html>
+</html>
