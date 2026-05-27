@@ -876,13 +876,12 @@
         <div class="level-card">Level 3<br>×2 to ×12<br>Promotion: General<br>Weapon: Laser Gun</div>
       </div>
 
-      <p><b>Mission:</b> Shoot the alien spaceship carrying the correct multiplication answer.</p>
-      <p>Aliens fly in two clear rows so you have space to aim and shoot.</p>
-      <p><b>Mobile tip:</b> Drag the spaceship only by touching near it. This prevents accidental teleporting.</p>
+      <p><b>Mission:</b> Shoot the alien spaceship with the correct answer.</p>
+      <p><b>Mobile tip:</b> Drag the spaceship or use the buttons.</p>
 
       <div class="btn-row">
-        <button onclick="startGame()">Start Mission</button>
-        <button class="secondary" onclick="showHow()">How to Play</button>
+        <button id="startBtn" type="button">Start Mission</button>
+        <button class="secondary" type="button" onclick="showHow()">How to Play</button>
         <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
       </div>
     </div>
@@ -999,6 +998,8 @@ let animationId = null;
 let shootCooldown = false;
 let audioCtx = null;
 let draggingPlane = false;
+let dragOffsetX = 32;
+let dragOffsetY = 38;
 
 function $(id){ return document.getElementById(id); }
 
@@ -1010,15 +1011,12 @@ function showScreen(id){
 function showHow(){
   $("cover").querySelector(".cover-card").innerHTML = `
     <h1>How to Play</h1>
-    <p><b>Desktop:</b> Use ← → ↑ ↓ or WASD to move. Press Space to shoot.</p>
-    <p><b>Mobile:</b> Touch near the spaceship first, then drag it. Press 🔥 to shoot.</p>
-    <p>The spaceship will not jump if you accidentally touch another part of the screen.</p>
-    <p>Shoot only the alien spaceship with the correct multiplication answer.</p>
-    <p>Alien spaceships fly in two well-spaced rows so you have room to aim.</p>
-    <p>After each stage, press the red bomb button to launch a bomb from your spaceship and destroy the multiplication facts.</p>
+    <p><b>Move:</b> Drag the spaceship or use the arrow buttons.</p>
+    <p><b>Shoot:</b> Press 🔥 to shoot the correct answer.</p>
+    <p><b>Goal:</b> Complete all 3 levels and earn your promotions.</p>
     <div class="btn-row">
-      <button onclick="location.reload()">Back</button>
-      <button class="success" onclick="startGame()">Start Mission</button>
+      <button type="button" onclick="location.reload()">Back</button>
+      <button class="success" type="button" onclick="startGame()">Start Mission</button>
     </div>
   `;
 }
@@ -1156,16 +1154,20 @@ function bindDragMovement(){
     const dx = e.clientX - shipCenterX;
     const dy = e.clientY - shipCenterY;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    const touchRadius = 90;
 
-    if(distance > touchRadius){
+    const touchRadius = 170;
+    const lowerFlightZone = e.clientY > window.innerHeight * 0.45;
+
+    if(distance > touchRadius && !lowerFlightZone){
       draggingPlane = false;
       return;
     }
 
     draggingPlane = true;
+    dragOffsetX = e.clientX - playerX;
+    dragOffsetY = e.clientY - playerY;
+
     try { game.setPointerCapture(e.pointerId); } catch(err) {}
-    movePlaneToPointer(e);
   };
 
   game.onpointermove = e => {
@@ -1179,8 +1181,8 @@ function bindDragMovement(){
 }
 
 function movePlaneToPointer(e){
-  playerX = e.clientX - 32;
-  playerY = e.clientY - 38;
+  playerX = e.clientX - dragOffsetX;
+  playerY = e.clientY - dragOffsetY;
   clampPlayer();
   updatePlayer();
 }
@@ -1209,14 +1211,6 @@ function nextFact(){
 function spawnAnswerWave(){
   const answers = generateAnswers(correctAnswer);
 
-  /*
-    Clear 2-row formation:
-    - 2 spaceships on the lower row
-    - 2 spaceships on the upper row
-    - Rows are far apart so pupils can aim properly
-    - No overlap
-  */
-
   const isMobile = window.innerWidth < 620;
   const enemyWidth = isMobile ? 72 : 78;
   const sidePadding = isMobile ? 22 : 48;
@@ -1237,7 +1231,6 @@ function spawnAnswerWave(){
     { x: middleRightX, y: upperRowY }
   ];
 
-  // Keep positions fixed for readability, but shuffle answer allocation.
   answers.forEach((ans, i) => {
     const pos = positions[i];
 
@@ -1640,8 +1633,7 @@ function showLandingFacts(){
       </div>
     </div>
 
-    <p>Your spaceship has reached a multiplication sector in space.</p>
-    <p>Press the red bomb button to launch a bomb from your spaceship and destroy the multiplication facts!</p>
+    <p>Your spaceship has reached a multiplication sector.</p>
 
     <div class="btn-row">
       <button class="bomb-button" onclick="blastFacts()">💣 Launch Space Bomb!</button>
@@ -1721,9 +1713,7 @@ function showPromotionScreen(){
         <div class="promotion-stars">⭐ ⭐ ⭐</div>
         <div class="weapon-note">${level.nextWeapon}</div>
       </div>
-      <p>You completed ${level.name}.</p>
       <p>Level Score: <b>${score}/${facts.length}</b></p>
-      <p>Your spaceship has been upgraded for the next mission.</p>
       <div class="btn-row">
         <button class="success" onclick="continueToNextLevel()">Continue to Level ${levelIndex + 2}</button>
         <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
@@ -1739,7 +1729,6 @@ function showPromotionScreen(){
         <div class="weapon-note">All missions completed!</div>
       </div>
       <p>Total Score: <b>${totalScore}/${LEVELS.reduce((sum,l)=>sum+l.questions,0)}</b></p>
-      <p>Outstanding flying, General! Expect a silly victory dance from the spaceship!</p>
       <div class="btn-row">
         <button class="success" onclick="startGame()">Play Again</button>
         <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
@@ -1769,6 +1758,169 @@ function endGame(){
     <p>Current Rank: <b>${LEVELS[levelIndex].currentRank}</b></p>
     <p>Level Score: <b>${score}/${facts.length}</b></p>
     <p>Total Score: <b>${totalScore}</b></p>
-    <p>Practise again to earn your next promotion!</p>
     <div class="btn-row">
-      <button class="
+      <button class="success" onclick="startGame()">Restart Mission</button>
+      <a class="button secondary" href="https://limkimsze-maker.github.io/">Back to Main Menu</a>
+    </div>
+  `;
+
+  $("message").style.display = "block";
+}
+
+function updateHud(){
+  const level = LEVELS[levelIndex];
+
+  $("levelNow").textContent = levelIndex + 1;
+  $("rankNow").textContent = level.currentRank;
+  $("score").textContent = score;
+  $("levelTotal").textContent = level.questions;
+  $("factTotal").textContent = level.questions;
+  $("lives").textContent = "❤️".repeat(lives) + "♡".repeat(3-lives);
+  $("streak").textContent = streak;
+}
+
+function clearEnemiesAndBullets(){
+  enemies.forEach(e=>e.el.remove());
+  bullets.forEach(b=>b.el.remove());
+  enemyBullets.forEach(b=>b.el.remove());
+
+  enemies = [];
+  bullets = [];
+  enemyBullets = [];
+}
+
+function showFloatingMessage(text,ms){
+  const msg = $("message");
+  msg.innerHTML = `<h2>Careful!</h2><p>${text}</p>`;
+  msg.style.display = "block";
+
+  setTimeout(()=>{
+    if(running) msg.style.display = "none";
+  }, ms);
+}
+
+function makeSpark(x,y){
+  const s = document.createElement("div");
+  s.className = "spark";
+  s.style.left = x + "px";
+  s.style.top = y + "px";
+  gameArea.appendChild(s);
+  setTimeout(()=>s.remove(),400);
+}
+
+function makeClouds(){
+  for(let i=0;i<10;i++){
+    const c = document.createElement("div");
+    c.className = "cloud";
+    c.style.left = Math.random()*100 + "vw";
+    c.style.top = -Math.random()*100 + "px";
+    c.style.opacity = 0.18 + Math.random()*0.18;
+    c.style.animationDuration = 14 + Math.random()*8 + "s";
+    c.style.animationDelay = -Math.random()*8 + "s";
+    gameArea.appendChild(c);
+  }
+}
+
+function sillyPlaneDance(){
+  let t = 0;
+
+  const dance = setInterval(()=>{
+    t++;
+    player.style.transform = `translateX(-50%) rotate(${Math.sin(t)*18}deg) scale(${1 + Math.sin(t*1.5)*0.08})`;
+    player.style.top = `${playerY + Math.sin(t)*18}px`;
+
+    if(t > 28){
+      clearInterval(dance);
+      player.style.transform = "translateX(-50%)";
+      updatePlayer();
+    }
+  },90);
+}
+
+function burstConfetti(count){
+  const colors = ["#ef4444","#facc15","#22c55e","#3b82f6","#a855f7","#fb923c"];
+
+  for(let i=0;i<count;i++){
+    const p = document.createElement("div");
+    p.className = "confetti";
+    p.style.left = Math.random()*100 + "vw";
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    p.style.animationDuration = 1.5 + Math.random()*1.5 + "s";
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),3000);
+  }
+}
+
+function getAudio(){
+  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function beep(freq,dur,type="sine",gainVal=.06){
+  try{
+    const ctx = getAudio();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+
+    o.type = type;
+    o.frequency.value = freq;
+    g.gain.value = gainVal;
+
+    o.connect(g);
+    g.connect(ctx.destination);
+
+    o.start();
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+dur);
+    o.stop(ctx.currentTime+dur);
+  }catch(e){}
+}
+
+function playShoot(){ beep(520,.06,"square",.035); }
+
+function playCorrect(){
+  beep(660,.08);
+  setTimeout(()=>beep(880,.1),90);
+}
+
+function playWrong(){
+  beep(180,.13,"sawtooth",.045);
+  setTimeout(()=>beep(130,.13,"sawtooth",.045),110);
+}
+
+function playPromotionSound(){
+  [523,659,784,1046,1318].forEach((n,i)=>setTimeout(()=>beep(n,.12),i*110));
+}
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+}
+
+function setupStartButton(){
+  const startBtn = $("startBtn");
+  if(!startBtn) return;
+
+  startBtn.addEventListener("click", function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    startGame();
+  }, { passive:false });
+
+  startBtn.addEventListener("pointerup", function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    startGame();
+  }, { passive:false });
+}
+
+setupStartButton();
+
+window.addEventListener("resize",()=>{
+  clampPlayer();
+  updatePlayer();
+});
+</script>
+</body>
+  </html>
