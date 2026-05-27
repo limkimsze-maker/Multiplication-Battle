@@ -1193,7 +1193,7 @@ function showHow(){
     <h1>How to Play</h1>
     <p><b>Move:</b> Drag the spaceship or use the arrow buttons.</p>
     <p><b>Shoot:</b> Press ←, 🔥 or → to shoot the correct answer.</p>
-    <p><b>Force Shield:</b> Get 3 correct in a row to activate a 15-second shield. No life is lost when hit during shield time.</p>
+    <p><b>Force Shield:</b> Get 3 correct in a row to activate a 15-second shield. It protects you from enemy hits, but not from wrong answers.</p>
     <p><b>Cheat Shot:</b> Once per stage, it shows the correct answer and homes in slowly.</p>
     <p><b>Goal:</b> Complete all 3 levels and earn your promotions.</p>
     <div class="btn-row">
@@ -1995,7 +1995,7 @@ function moveEnemies(){
       e.el.remove();
 
       if(e.correct && running){
-        loseLife("The correct answer flew away!");
+        loseLife("The correct answer flew away!", true);
       }
 
       return false;
@@ -2095,7 +2095,7 @@ function handleEnemyHit(e, type){
   }else{
     streak = 0;
     playWrong();
-    loseLife(type === "laser" ? "Oops! The laser hit a wrong answer." : "Oops! That was a wrong answer.");
+    loseLife("Wrong answer.", false);
   }
 }
 
@@ -2113,7 +2113,7 @@ function checkEnemyBulletHits(){
       b.el.remove();
       enemyBullets.splice(i,1);
       playWrong();
-      loseLife("You were hit by an enemy shot!");
+      loseLife("You were hit by an enemy shot!", true);
       return;
     }
   }
@@ -2123,8 +2123,8 @@ function rectHit(a,b){
   return !(a.right < b.left || a.left > b.right || a.bottom < b.top || a.top > b.bottom);
 }
 
-function loseLife(text){
-  if(shieldActive && Date.now() < shieldUntil){
+function loseLife(text, shieldCanProtect = true){
+  if(shieldCanProtect && shieldActive && Date.now() < shieldUntil){
     showFloatingMessage("🛡️ Force shield protected you! No life lost.", 700);
     clearEnemiesAndBullets();
 
@@ -2147,7 +2147,7 @@ function loseLife(text){
   if(lives <= 0){
     endGame();
   }else{
-    showFloatingMessage(text + " Try again!", 800);
+    showFloatingMessage(text, 800);
 
     respawnTimer = setTimeout(() => {
       respawnTimer = null;
@@ -2501,4 +2501,4 @@ window.addEventListener("resize",()=>{
 });
 </script>
 </body>
-</html>
+  </html>
