@@ -418,6 +418,11 @@
     box-shadow:0 0 10px #22c55e;
   }
 
+  .sideBullet{
+    width:24px;
+    height:10px;
+  }
+
   .laserBeam{
     position:absolute;
     width:24px;
@@ -950,9 +955,9 @@
         </div>
 
         <div class="control-group weapon-buttons">
-          <button class="ctrl side-shoot" id="leftShootBtn">L</button>
+          <button class="ctrl side-shoot" id="leftShootBtn">←</button>
           <button class="ctrl shoot" id="shootBtn">🔥</button>
-          <button class="ctrl side-shoot" id="rightShootBtn">R</button>
+          <button class="ctrl side-shoot" id="rightShootBtn">→</button>
         </div>
       </div>
 
@@ -1040,7 +1045,7 @@ function showHow(){
   $("cover").querySelector(".cover-card").innerHTML = `
     <h1>How to Play</h1>
     <p><b>Move:</b> Drag the spaceship or use the arrow buttons.</p>
-    <p><b>Shoot:</b> Press L, 🔥 or R to shoot the correct answer.</p>
+    <p><b>Shoot:</b> Press ←, 🔥 or → to shoot the correct answer.</p>
     <p><b>Goal:</b> Complete all 3 levels and earn your promotions.</p>
     <div class="btn-row">
       <button type="button" onclick="location.reload()">Back</button>
@@ -1377,9 +1382,9 @@ function shootSide(direction){
   setTimeout(()=>shootCooldown=false,180);
 
   if(direction === "left"){
-    createPlayerBullet(playerX + 8, playerY - 10, 0, "bullet sprayBullet");
+    createSideBullet(playerX - 8, playerY + 28, -8, "bullet sprayBullet sideBullet");
   }else{
-    createPlayerBullet(playerX + 48, playerY - 10, 0, "bullet sprayBullet");
+    createSideBullet(playerX + 64, playerY + 28, 8, "bullet sprayBullet sideBullet");
   }
 
   playShoot();
@@ -1408,6 +1413,15 @@ function createPlayerBullet(x, y, vx, className){
   bullet.style.top = y + "px";
   gameArea.appendChild(bullet);
   bullets.push({el:bullet, x, y, vx});
+}
+
+function createSideBullet(x, y, vx, className){
+  const bullet = document.createElement("div");
+  bullet.className = className;
+  bullet.style.left = x + "px";
+  bullet.style.top = y + "px";
+  gameArea.appendChild(bullet);
+  bullets.push({el:bullet, x, y, vx, side:true});
 }
 
 function fireLaserGun(){
@@ -1471,14 +1485,19 @@ function updatePlayer(){
 
 function moveBullets(){
   bullets.forEach(b=>{
-    b.y -= bulletSpeed;
-    b.x += b.vx || 0;
+    if(b.side){
+      b.x += b.vx;
+    }else{
+      b.y -= bulletSpeed;
+      b.x += b.vx || 0;
+    }
+
     b.el.style.top = b.y + "px";
     b.el.style.left = b.x + "px";
   });
 
   bullets = bullets.filter(b=>{
-    if(b.y < -40 || b.x < -40 || b.x > window.innerWidth + 40){
+    if(b.y < -40 || b.x < -60 || b.x > window.innerWidth + 60){
       b.el.remove();
       return false;
     }
