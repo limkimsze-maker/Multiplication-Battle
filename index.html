@@ -873,7 +873,7 @@
       <div class="level-list">
         <div class="level-card">Level 1<br>×2, ×3, ×4, ×5<br>Promotion: Captain<br>Weapon: Single Shot</div>
         <div class="level-card">Level 2<br>×6, ×7, ×8, ×9, ×10<br>Promotion: Major<br>Weapon: 3-Shot Spray</div>
-        <div class="level-card">Level 3<br>×2 to ×12<br>Promotion: General<br>Weapon: Laser Gun</div>
+        <div class="level-card">Level 3<br>×2 to ×12<br>Promotion: General<br>Weapon: Precise Laser</div>
       </div>
 
       <p><b>Mission:</b> Shoot the alien spaceship with the correct answer.</p>
@@ -959,7 +959,7 @@ const LEVELS = [
     questions:12,
     currentRank:"Captain",
     promotion:"Major",
-    nextWeapon:"Laser Gun unlocked!",
+    nextWeapon:"Precise Laser unlocked!",
     enemySpeed:0.85,
     maxEnemyBullets:2
   },
@@ -1211,11 +1211,11 @@ function nextFact(){
 function spawnAnswerWave(){
   /*
     Formation by level:
-    Level 1: clear 2-row formation
+    Level 1: 2-row formation
     Level 2: V formation
-    Level 3: W formation
+    Level 3: wide zigzag formation
 
-    The y-values are deliberately far apart so ships do not overlap.
+    Level 3 uses a wide zigzag to prevent overlap on mobile.
   */
 
   const isMobile = window.innerWidth < 620;
@@ -1224,7 +1224,6 @@ function spawnAnswerWave(){
 
   const minX = sidePadding;
   const maxX = window.innerWidth - sidePadding - enemyWidth;
-
   const safeX = x => Math.max(minX, Math.min(maxX, x));
 
   let positions = [];
@@ -1242,7 +1241,7 @@ function spawnAnswerWave(){
   }
 
   if(levelIndex === 1){
-    const gapY = isMobile ? 125 : 145;
+    const gapY = isMobile ? 145 : 165;
 
     positions = [
       { x: safeX(window.innerWidth * 0.18 - enemyWidth / 2), y: -95 },
@@ -1253,15 +1252,27 @@ function spawnAnswerWave(){
   }
 
   if(levelIndex === 2){
+    /*
+      Level 3: wide zigzag formation
+
+      Layout:
+      left
+                right
+      left
+                right
+      left
+
+      This gives every spaceship its own vertical space.
+    */
     answerCount = 5;
     const gapY = isMobile ? 115 : 135;
 
     positions = [
-      { x: safeX(window.innerWidth * 0.10 - enemyWidth / 2), y: -95 },
-      { x: safeX(window.innerWidth * 0.30 - enemyWidth / 2), y: -95 - gapY },
-      { x: safeX(window.innerWidth * 0.50 - enemyWidth / 2), y: -95 },
-      { x: safeX(window.innerWidth * 0.70 - enemyWidth / 2), y: -95 - gapY },
-      { x: safeX(window.innerWidth * 0.90 - enemyWidth / 2), y: -95 }
+      { x: safeX(window.innerWidth * 0.18 - enemyWidth / 2), y: -95 },
+      { x: safeX(window.innerWidth * 0.82 - enemyWidth / 2), y: -95 - gapY },
+      { x: safeX(window.innerWidth * 0.18 - enemyWidth / 2), y: -95 - gapY * 2 },
+      { x: safeX(window.innerWidth * 0.82 - enemyWidth / 2), y: -95 - gapY * 3 },
+      { x: safeX(window.innerWidth * 0.18 - enemyWidth / 2), y: -95 - gapY * 4 }
     ];
   }
 
@@ -1313,7 +1324,7 @@ function createEnemy(x,y,answer,isCorrect){
     y,
     answer,
     correct:isCorrect,
-    speed:enemySpeed + Math.random()*0.10,
+    speed:enemySpeed + Math.random()*0.08,
     hasShot:false
   });
 }
@@ -1526,6 +1537,14 @@ function moveEnemies(){
 function checkLaserHit(laserLeft, laserRight){
   if(!running) return;
 
+  /*
+    Precise laser rule:
+    - Laser hits only the FIRST spaceship in its path.
+    - It does not pass through to hit others.
+    - If the first ship is correct, pupil gets it right.
+    - If the first ship is wrong, pupil loses a life.
+  */
+
   const hitList = enemies
     .map((e, index) => {
       const r = e.el.getBoundingClientRect();
@@ -1545,7 +1564,7 @@ function checkLaserHit(laserLeft, laserRight){
              item.r.bottom >= 0 &&
              item.r.top <= playerY;
     })
-    .sort((a,b) => b.r.top - a.r.top);
+    .sort((a,b) => b.r.bottom - a.r.bottom);
 
   if(hitList.length === 0) return;
 
