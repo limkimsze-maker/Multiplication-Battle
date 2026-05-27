@@ -279,6 +279,28 @@
     pointer-events:none;
   }
 
+  #player.shielded::before{
+    content:"";
+    position:absolute;
+    left:-16px;
+    top:-14px;
+    width:96px;
+    height:104px;
+    border:5px solid #67e8f9;
+    border-radius:50%;
+    box-shadow:
+      0 0 18px #22d3ee,
+      inset 0 0 18px #67e8f9;
+    background:radial-gradient(circle, rgba(103,232,249,.12), rgba(34,211,238,.04), transparent);
+    animation:shieldPulse .7s ease-in-out infinite alternate;
+    pointer-events:none;
+  }
+
+  @keyframes shieldPulse{
+    from{ transform:scale(.95); opacity:.65; }
+    to{ transform:scale(1.08); opacity:1; }
+  }
+
   #player .body{
     position:absolute;
     left:18px;
@@ -608,6 +630,24 @@
     pointer-events:none;
   }
 
+  #shieldBadge{
+    position:absolute;
+    left:50%;
+    top:150px;
+    transform:translateX(-50%);
+    z-index:95;
+    display:none;
+    background:#ecfeff;
+    border:4px solid #0891b2;
+    border-radius:20px;
+    padding:8px 16px;
+    font-weight:900;
+    font-size:clamp(1rem,3.5vw,1.5rem);
+    color:#0e7490;
+    box-shadow:0 6px 0 #155e75, 0 0 18px #67e8f9;
+    pointer-events:none;
+  }
+
   #message{
     position:absolute;
     left:50%;
@@ -913,6 +953,12 @@
       padding:7px 12px;
     }
 
+    #shieldBadge{
+      top:154px;
+      font-size:.95rem;
+      padding:6px 10px;
+    }
+
     .enemy{
       width:72px;
       height:58px;
@@ -983,8 +1029,8 @@
 
   <section id="cover" class="screen active">
     <div class="cover-card">
-      <h1>🚀 Multiply Space Commander</h1>
-      <div class="subtitle">Multiplication Facts Mission</div>
+      <h1>🚀 Multiply Flyer</h1>
+      <div class="subtitle">Space Commander — Multiplication Facts Mission</div>
       <div class="plane-big"></div>
 
       <div class="level-list">
@@ -995,6 +1041,7 @@
 
       <p><b>Mission:</b> Shoot the alien spaceship with the correct answer.</p>
       <p><b>Mobile tip:</b> Drag the spaceship or use the buttons.</p>
+      <p><b>Power-up:</b> 3 correct in a row gives a 15-second force shield.</p>
 
       <div class="btn-row">
         <button id="startBtn" type="button">Start Mission</button>
@@ -1055,6 +1102,7 @@
 
       <div id="message"></div>
       <div id="cheatAnswerBadge"></div>
+      <div id="shieldBadge">🛡️ Force Shield: 15s</div>
       <div class="credit">Designed by Lim Kim Sze © 2026</div>
     </div>
   </section>
@@ -1129,6 +1177,9 @@ let waveLocked = false;
 let cheatUsedThisStage = false;
 let cheatActive = false;
 let slowMotionUntil = 0;
+let shieldActive = false;
+let shieldUntil = 0;
+let shieldTimer = null;
 
 function $(id){ return document.getElementById(id); }
 
@@ -1142,6 +1193,7 @@ function showHow(){
     <h1>How to Play</h1>
     <p><b>Move:</b> Drag the spaceship or use the arrow buttons.</p>
     <p><b>Shoot:</b> Press ←, 🔥 or → to shoot the correct answer.</p>
+    <p><b>Force Shield:</b> Get 3 correct in a row to activate a 15-second shield. No life is lost when hit during shield time.</p>
     <p><b>Cheat Shot:</b> Once per stage, it shows the correct answer and homes in slowly.</p>
     <p><b>Goal:</b> Complete all 3 levels and earn your promotions.</p>
     <div class="btn-row">
@@ -1173,6 +1225,7 @@ function startGame(){
   gameArea.innerHTML = "";
   $("message").style.display = "none";
   hideCheatBadge();
+  deactivateShield();
 
   playerX = window.innerWidth / 2 - 32;
   playerY = window.innerHeight - 260;
@@ -1206,6 +1259,7 @@ function startLevel(index){
   slowMotionUntil = 0;
   updateCheatButton();
   hideCheatBadge();
+  deactivateShield();
 
   facts = makeFacts(level.tables, level.questions);
 
@@ -1662,6 +1716,63 @@ function hideCheatBadge(){
   badge.style.display = "none";
 }
 
+function activateShield(){
+  shieldActive = true;
+  shieldUntil = Date.now() + 15000;
+
+  if(player){
+    player.classList.add("shielded");
+  }
+
+  showShieldBadge();
+
+  if(shieldTimer){
+    clearInterval(shieldTimer);
+  }
+
+  shieldTimer = setInterval(() => {
+    const secondsLeft = Math.max(0, Math.ceil((shieldUntil - Date.now()) / 1000));
+
+    if(secondsLeft <= 0){
+      deactivateShield();
+    }else{
+      const badge = $("shieldBadge");
+      if(badge){
+        badge.textContent = `🛡️ Force Shield: ${secondsLeft}s`;
+      }
+    }
+  }, 250);
+}
+
+function deactivateShield(){
+  shieldActive = false;
+  shieldUntil = 0;
+
+  if(player){
+    player.classList.remove("shielded");
+  }
+
+  hideShieldBadge();
+
+  if(shieldTimer){
+    clearInterval(shieldTimer);
+    shieldTimer = null;
+  }
+}
+
+function showShieldBadge(){
+  const badge = $("shieldBadge");
+  if(!badge) return;
+  badge.textContent = "🛡️ Force Shield: 15s";
+  badge.style.display = "block";
+}
+
+function hideShieldBadge(){
+  const badge = $("shieldBadge");
+  if(!badge) return;
+  badge.style.display = "none";
+}
+
 function fireSingleBullet(){
   createPlayerBullet(playerX + 27, playerY - 18, 0, "bullet");
 }
@@ -1971,6 +2082,11 @@ function handleEnemyHit(e, type){
     score++;
     totalScore++;
     streak++;
+
+    if(streak > 0 && streak % 3 === 0){
+      activateShield();
+    }
+
     current++;
     playCorrect();
     enemySpeed = Math.min(enemySpeed + 0.04, 2.25);
@@ -2008,6 +2124,20 @@ function rectHit(a,b){
 }
 
 function loseLife(text){
+  if(shieldActive && Date.now() < shieldUntil){
+    showFloatingMessage("🛡️ Force shield protected you! No life lost.", 700);
+    clearEnemiesAndBullets();
+
+    respawnTimer = setTimeout(() => {
+      respawnTimer = null;
+      if(running){
+        spawnAnswerWave();
+      }
+    }, 700);
+
+    return;
+  }
+
   lives--;
   streak = 0;
   updateHud();
@@ -2031,6 +2161,7 @@ function loseLife(text){
 function levelCleared(){
   running = false;
   clearEnemiesAndBullets();
+  deactivateShield();
   playPromotionSound();
   burstConfetti(50);
   showLandingFacts();
@@ -2168,6 +2299,7 @@ function continueToNextLevel(){
 function endGame(){
   running = false;
   clearEnemiesAndBullets();
+  deactivateShield();
 
   const canContinueSameLevel = levelIndex > 0;
 
@@ -2201,6 +2333,7 @@ function continueSameLevel(){
   slowMotionUntil = 0;
   updateCheatButton();
   hideCheatBadge();
+  deactivateShield();
 
   startLevel(levelIndex);
 
@@ -2368,4 +2501,4 @@ window.addEventListener("resize",()=>{
 });
 </script>
 </body>
-  </html>
+</html>
