@@ -172,6 +172,10 @@
     box-shadow:0 2px 0 #a16207;
   }
 
+  button:disabled{
+    cursor:not-allowed;
+  }
+
   .secondary{
     background:linear-gradient(#dbeafe,#60a5fa);
     box-shadow:0 6px 0 #1d4ed8;
@@ -400,6 +404,14 @@
     box-shadow:0 3px 0 #111827;
   }
 
+  .enemy.cheatTarget .answerTag{
+    background:#fef08a;
+    border-color:#dc2626;
+    color:#dc2626;
+    transform:translateX(-50%) scale(1.25);
+    box-shadow:0 0 18px #facc15, 0 3px 0 #7f1d1d;
+  }
+
   .bullet{
     position:absolute;
     width:10px;
@@ -421,6 +433,14 @@
   .sideBullet{
     width:24px;
     height:10px;
+  }
+
+  .cheatBullet{
+    width:18px;
+    height:18px;
+    background:#facc15;
+    border:3px solid #92400e;
+    box-shadow:0 0 18px #facc15;
   }
 
   .laserBeam{
@@ -522,6 +542,14 @@
     box-shadow:0 5px 0 #be123c;
   }
 
+  .weapon-stack{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    align-items:center;
+    pointer-events:auto;
+  }
+
   .weapon-buttons{
     gap:8px;
     align-items:end;
@@ -534,6 +562,38 @@
     font-size:1.45rem;
     background:linear-gradient(#dbeafe,#60a5fa);
     box-shadow:0 5px 0 #1d4ed8;
+  }
+
+  .cheat-shoot{
+    width:210px;
+    height:46px;
+    border-radius:18px;
+    font-size:1rem;
+    background:linear-gradient(#fde68a,#f97316);
+    box-shadow:0 5px 0 #9a3412;
+  }
+
+  .cheat-shoot.used{
+    opacity:.55;
+    filter:grayscale(.4);
+  }
+
+  #cheatAnswerBadge{
+    position:absolute;
+    left:50%;
+    top:92px;
+    transform:translateX(-50%);
+    z-index:95;
+    display:none;
+    background:#fff7cc;
+    border:4px solid #dc2626;
+    border-radius:20px;
+    padding:10px 18px;
+    font-weight:900;
+    font-size:clamp(1.1rem,4vw,2rem);
+    color:#dc2626;
+    box-shadow:0 6px 0 #7f1d1d, 0 0 18px #facc15;
+    pointer-events:none;
   }
 
   #message{
@@ -815,6 +875,10 @@
       font-size:1.65rem;
     }
 
+    .weapon-stack{
+      gap:5px;
+    }
+
     .weapon-buttons{
       gap:5px;
     }
@@ -823,6 +887,18 @@
       width:50px;
       height:58px;
       font-size:1.1rem;
+    }
+
+    .cheat-shoot{
+      width:160px;
+      height:40px;
+      font-size:.85rem;
+    }
+
+    #cheatAnswerBadge{
+      top:112px;
+      font-size:1.05rem;
+      padding:7px 12px;
     }
 
     .enemy{
@@ -954,14 +1030,19 @@
           <button class="ctrl" id="rightBtn">▶</button>
         </div>
 
-        <div class="control-group weapon-buttons">
-          <button class="ctrl side-shoot" id="leftShootBtn">←</button>
-          <button class="ctrl shoot" id="shootBtn">🔥</button>
-          <button class="ctrl side-shoot" id="rightShootBtn">→</button>
+        <div class="weapon-stack">
+          <button class="ctrl cheat-shoot" id="cheatBtn">🎯 Cheat Shot</button>
+
+          <div class="control-group weapon-buttons">
+            <button class="ctrl side-shoot" id="leftShootBtn">←</button>
+            <button class="ctrl shoot" id="shootBtn">🔥</button>
+            <button class="ctrl side-shoot" id="rightShootBtn">→</button>
+          </div>
         </div>
       </div>
 
       <div id="message"></div>
+      <div id="cheatAnswerBadge"></div>
       <div class="credit">Designed by Lim Kim Sze © 2026</div>
     </div>
   </section>
@@ -1033,6 +1114,9 @@ let dragOffsetX = 32;
 let dragOffsetY = 38;
 let respawnTimer = null;
 let waveLocked = false;
+let cheatUsedThisStage = false;
+let cheatActive = false;
+let slowMotionUntil = 0;
 
 function $(id){ return document.getElementById(id); }
 
@@ -1046,6 +1130,7 @@ function showHow(){
     <h1>How to Play</h1>
     <p><b>Move:</b> Drag the spaceship or use the arrow buttons.</p>
     <p><b>Shoot:</b> Press ←, 🔥 or → to shoot the correct answer.</p>
+    <p><b>Cheat Shot:</b> Once per stage, it shows the correct answer and homes in slowly.</p>
     <p><b>Goal:</b> Complete all 3 levels and earn your promotions.</p>
     <div class="btn-row">
       <button type="button" onclick="location.reload()">Back</button>
@@ -1069,9 +1154,13 @@ function startGame(){
   shootCooldown = false;
   draggingPlane = false;
   waveLocked = false;
+  cheatUsedThisStage = false;
+  cheatActive = false;
+  slowMotionUntil = 0;
 
   gameArea.innerHTML = "";
   $("message").style.display = "none";
+  hideCheatBadge();
 
   playerX = window.innerWidth / 2 - 32;
   playerY = window.innerHeight - 260;
@@ -1099,6 +1188,12 @@ function startLevel(index){
   enemyBullets = [];
   enemySpeed = level.enemySpeed;
   waveLocked = false;
+
+  cheatUsedThisStage = false;
+  cheatActive = false;
+  slowMotionUntil = 0;
+  updateCheatButton();
+  hideCheatBadge();
 
   facts = makeFacts(level.tables, level.questions);
 
@@ -1139,6 +1234,10 @@ function bindControls(){
     if(e.key === "e" || e.key === "E"){
       shootSide("right");
     }
+
+    if(e.key === "c" || e.key === "C"){
+      fireCheatShot();
+    }
   };
 
   document.onkeyup = e => {
@@ -1172,6 +1271,14 @@ function bindControls(){
     e.stopPropagation();
     try { rightShootBtn.setPointerCapture(e.pointerId); } catch(err) {}
     shootSide("right");
+  }, { passive:false });
+
+  const cheatBtn = $("cheatBtn");
+  cheatBtn.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    e.stopPropagation();
+    try { cheatBtn.setPointerCapture(e.pointerId); } catch(err) {}
+    fireCheatShot();
   }, { passive:false });
 }
 
@@ -1215,7 +1322,7 @@ function bindDragMovement(){
     const dy = e.clientY - shipCenterY;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    const touchRadius = 170;
+    const touchRadius = 230;
     const lowerFlightZone = e.clientY > window.innerHeight * 0.45;
 
     if(distance > touchRadius && !lowerFlightZone){
@@ -1390,6 +1497,66 @@ function shootSide(direction){
   playShoot();
 }
 
+function fireCheatShot(){
+  if(!running || cheatUsedThisStage || cheatActive) return;
+
+  const target = enemies.find(e => e.correct);
+  if(!target) return;
+
+  cheatUsedThisStage = true;
+  cheatActive = true;
+  slowMotionUntil = Date.now() + 2600;
+
+  target.el.classList.add("cheatTarget");
+  showCheatBadge(`Correct answer: ${correctAnswer}`);
+  updateCheatButton();
+
+  const bullet = document.createElement("div");
+  bullet.className = "bullet cheatBullet";
+  bullet.style.left = (playerX + 24) + "px";
+  bullet.style.top = (playerY + 8) + "px";
+  gameArea.appendChild(bullet);
+
+  bullets.push({
+    el: bullet,
+    x: playerX + 24,
+    y: playerY + 8,
+    vx: 0,
+    cheat: true,
+    target: target
+  });
+
+  playPromotionSound();
+}
+
+function updateCheatButton(){
+  const btn = $("cheatBtn");
+  if(!btn) return;
+
+  if(cheatUsedThisStage){
+    btn.textContent = "🎯 Used";
+    btn.classList.add("used");
+    btn.disabled = true;
+  }else{
+    btn.textContent = "🎯 Cheat Shot";
+    btn.classList.remove("used");
+    btn.disabled = false;
+  }
+}
+
+function showCheatBadge(text){
+  const badge = $("cheatAnswerBadge");
+  if(!badge) return;
+  badge.textContent = text;
+  badge.style.display = "block";
+}
+
+function hideCheatBadge(){
+  const badge = $("cheatAnswerBadge");
+  if(!badge) return;
+  badge.style.display = "none";
+}
+
 function fireSingleBullet(){
   createPlayerBullet(playerX + 27, playerY - 18, 0, "bullet");
 }
@@ -1456,7 +1623,7 @@ function loop(){
 }
 
 function movePlayer(){
-  const speed = 6.5;
+  const speed = 8.5;
 
   if(keys["ArrowLeft"] || keys["a"] || keys["A"]) playerX -= speed;
   if(keys["ArrowRight"] || keys["d"] || keys["D"]) playerX += speed;
@@ -1485,7 +1652,47 @@ function updatePlayer(){
 
 function moveBullets(){
   bullets.forEach(b=>{
-    if(b.side){
+    if(b.cheat){
+      if(!b.target || !enemies.includes(b.target)){
+        b.el.remove();
+        b.dead = true;
+        cheatActive = false;
+        hideCheatBadge();
+        return;
+      }
+
+      const targetX = b.target.x + 39;
+      const targetY = b.target.y + 28;
+
+      const dx = targetX - b.x;
+      const dy = targetY - b.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      const speed = 3.2;
+
+      if(dist < 14){
+        makeSpark(b.target.x + 36, b.target.y + 26);
+
+        b.el.remove();
+        b.dead = true;
+
+        b.target.el.classList.remove("cheatTarget");
+        b.target.el.remove();
+
+        const index = enemies.indexOf(b.target);
+        if(index >= 0) enemies.splice(index, 1);
+
+        cheatActive = false;
+        hideCheatBadge();
+
+        handleEnemyHit(b.target, "cheat");
+        return;
+      }
+
+      b.x += (dx / dist) * speed;
+      b.y += (dy / dist) * speed;
+    }
+    else if(b.side){
       b.x += b.vx;
     }else{
       b.y -= bulletSpeed;
@@ -1497,8 +1704,8 @@ function moveBullets(){
   });
 
   bullets = bullets.filter(b=>{
-    if(b.y < -40 || b.x < -60 || b.x > window.innerWidth + 60){
-      b.el.remove();
+    if(b.dead || b.y < -40 || b.x < -60 || b.x > window.innerWidth + 60){
+      if(!b.dead) b.el.remove();
       return false;
     }
     return true;
@@ -1560,8 +1767,10 @@ function moveEnemyBullets(){
 }
 
 function moveEnemies(){
+  const slowFactor = Date.now() < slowMotionUntil ? 0.25 : 1;
+
   enemies.forEach(e=>{
-    e.y += e.speed;
+    e.y += e.speed * slowFactor;
     e.el.style.top = e.y + "px";
   });
 
@@ -1591,10 +1800,10 @@ function checkLaserHit(laserLeft, laserRight){
       const r = e.el.getBoundingClientRect();
 
       const easyHitBox = {
-        left: r.left - 12,
-        right: r.right + 12,
-        top: r.top - 8,
-        bottom: r.bottom + 8
+        left: r.left + 10,
+        right: r.right - 10,
+        top: r.top + 8,
+        bottom: r.bottom - 8
       };
 
       return { e, index, r: easyHitBox };
@@ -1622,6 +1831,8 @@ function checkLaserHit(laserLeft, laserRight){
 function checkCollisions(){
   for(let bi = bullets.length - 1; bi >= 0; bi--){
     const b = bullets[bi];
+    if(b.cheat) continue;
+
     const br = b.el.getBoundingClientRect();
 
     for(let ei = enemies.length - 1; ei >= 0; ei--){
@@ -1629,10 +1840,10 @@ function checkCollisions(){
       const er = e.el.getBoundingClientRect();
 
       const easyHitBox = {
-        left: er.left - 10,
-        right: er.right + 10,
-        top: er.top - 10,
-        bottom: er.bottom + 10
+        left: er.left + 10,
+        right: er.right - 10,
+        top: er.top + 8,
+        bottom: er.bottom - 8
       };
 
       if(rectHit(br,easyHitBox)){
@@ -1894,6 +2105,10 @@ function clearEnemiesAndBullets(){
   bullets = [];
   enemyBullets = [];
   waveLocked = false;
+
+  cheatActive = false;
+  slowMotionUntil = 0;
+  hideCheatBadge();
 }
 
 function showFloatingMessage(text,ms){
