@@ -1213,20 +1213,20 @@ function spawnAnswerWave(){
 
   const isMobile = window.innerWidth < 620;
   const enemyWidth = isMobile ? 72 : 78;
-  const sidePadding = isMobile ? 12 : 36;
+  const sidePadding = isMobile ? 24 : 56;
 
   const minX = sidePadding;
   const maxX = window.innerWidth - sidePadding - enemyWidth;
-  const availableWidth = maxX - minX;
-  const gap = availableWidth / 3;
 
-  const rowY = -95;
+  const safeX = x => Math.max(minX, Math.min(maxX, x));
+
+  const rowGap = isMobile ? 145 : 165;
 
   const positions = [
-    { x: minX, y: rowY },
-    { x: minX + gap, y: rowY },
-    { x: minX + gap * 2, y: rowY },
-    { x: maxX, y: rowY }
+    { x: safeX(window.innerWidth * 0.18 - enemyWidth / 2), y: -95 },
+    { x: safeX(window.innerWidth * 0.82 - enemyWidth / 2), y: -95 },
+    { x: safeX(window.innerWidth * 0.35 - enemyWidth / 2), y: -95 - rowGap },
+    { x: safeX(window.innerWidth * 0.65 - enemyWidth / 2), y: -95 - rowGap }
   ];
 
   answers.forEach((ans, i) => {
